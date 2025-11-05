@@ -591,3 +591,177 @@ button:disabled {
         gap: 2px;
     }
 }
+
+/* Quick Entry Layout */
+.quick-entry-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.form-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+}
+
+.side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Autocomplete Styles */
+.autocomplete-dropdown {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: calc(100% - 24px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.autocomplete-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+}
+
+.autocomplete-item:hover {
+    background: #f5f5f5;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item strong {
+    color: #2196F3;
+}
+
+.form-group {
+    position: relative;
+}
+
+/* WhatsApp Parser */
+.whatsapp-parser-section {
+    background: #fff8e1;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ffd54f;
+}
+
+.whatsapp-parser-section h3 {
+    color: #f57c00;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.parser-info {
+    background: #fff3e0;
+    padding: 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    margin-bottom: 15px;
+    border-left: 3px solid #ff9800;
+}
+
+#whatsapp-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ffd54f;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: monospace;
+    resize: vertical;
+    background: #fffdf6;
+}
+
+#whatsapp-input:focus {
+    outline: none;
+    border-color: #ff9800;
+}
+
+/* Latest Entries */
+.latest-entries-section {
+    background: #e8f5e8;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #4caf50;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.latest-entries-section h3 {
+    color: #2e7d32;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.latest-ticket-item {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border-left: 4px solid #4caf50;
+    transition: all 0.3s ease;
+}
+
+.latest-ticket-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.ticket-route {
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.ticket-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.ticket-status {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.ticket-status.received { background: #fff3cd; color: #856404; }
+.ticket-status.assigned { background: #d1ecf1; color: #0c5460; }
+.ticket-status.booked { background: #d4edda; color: #155724; }
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.form-actions button {
+    flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .quick-entry-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .side-panel {
+        order: -1;
+    }
+}
