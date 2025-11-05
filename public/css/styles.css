@@ -272,7 +272,7 @@ button:disabled {
 /* ===== COMPACT VERTICAL QUEUE LAYOUT ===== */
 .routes-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 columns as requested */
+    grid-template-columns: repeat(4, 1fr);
     gap: 15px;
     margin-top: 20px;
 }
@@ -330,7 +330,8 @@ button:disabled {
 
 .passenger-group.selected {
     border: 2px solid #2196F3;
-    background: rgba(33, 150, 243, 0.05);
+    background: rgba(33, 150, 243, 0.08);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
 }
 
 .group-header {
@@ -368,7 +369,7 @@ button:disabled {
 
 .group-main-info {
     flex: 1;
-    min-width: 0; /* Prevent flex item from overflowing */
+    min-width: 0;
 }
 
 .group-basic-info {
@@ -412,29 +413,6 @@ button:disabled {
     gap: 10px;
     flex-wrap: wrap;
 }
-
-.group-actions-right {
-    display: flex;
-    gap: 4px;
-    flex-shrink: 0;
-}
-
-.action-btn-small {
-    padding: 4px 6px;
-    font-size: 10px;
-    border-radius: 3px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.action-btn-small:hover {
-    transform: scale(1.1);
-}
-
-.booked-btn { background: #4caf50; color: white; }
-.assign-btn { background: #ff9800; color: white; }
-.delete-btn { background: #f44336; color: white; }
 
 .group-details-compact {
     margin-top: 8px;
@@ -486,18 +464,56 @@ button:disabled {
     margin-top: 4px;
 }
 
-/* Bulk Actions */
+.created-by-compact {
+    font-size: 10px;
+    color: #888;
+    text-align: right;
+    margin-top: 6px;
+    font-style: italic;
+}
+
+/* Enhanced Bulk Actions */
 .bulk-actions {
     background: #e3f2fd;
-    padding: 12px;
+    padding: 15px;
     border-radius: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     border: 2px solid #2196F3;
-    display: flex;
+    display: none;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     flex-wrap: wrap;
+    animation: slideDown 0.3s ease;
 }
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.bulk-actions strong {
+    color: #1976d2;
+    margin-right: 10px;
+}
+
+.action-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+}
+
+.edit-btn { background: #2196F3; color: white; }
+.booked-btn { background: #4caf50; color: white; }
+.assign-btn { background: #ff9800; color: white; }
+.delete-btn { background: #f44336; color: white; }
 
 .staff-list {
     display: flex;
@@ -567,10 +583,6 @@ button:disabled {
     .group-header {
         flex-direction: column;
         gap: 8px;
-    }
-    
-    .group-actions-right {
-        align-self: flex-end;
     }
     
     .passenger-item-compact {
