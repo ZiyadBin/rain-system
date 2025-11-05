@@ -1,54 +1,59 @@
 const express = require('express');
-const { GoogleSpreadsheet } = require('google-spreadsheet');
 const router = express.Router();
 
-// Initialize Google Sheets
-const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID);
+// Mock database (in-memory storage for testing)
+let mockTickets = [
+    {
+        id: 'TKT1701234567',
+        from_station: 'Tirur',
+        to_station: 'Chennai',
+        passengers: 'John Doe, Jane Doe',
+        status: 'received',
+        created: new Date().toISOString(),
+        class: 'Sleeper',
+        journey_date: '2024-01-15',
+        mobile: '9876543210',
+        train_type: 'Express',
+        remark: 'Window seat preferred',
+        created_by: 'Ziyad'
+    }
+];
 
-// Service account authentication
-const initSheet = async () => {
-    await doc.useServiceAccountAuth({
-        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n')
-    });
-    await doc.loadInfo();
-};
-
-// Initialize on startup
-initSheet().catch(console.error);
-
-// Save ticket
+// Save ticket (mock version)
 router.post('/', async (req, res) => {
     try {
         const ticketData = req.body;
-        
-        const sheet = doc.sheetsByIndex[0];
         
         // Generate ticket ID
         const ticketId = 'TKT' + Date.now();
         const passengerNames = ticketData.passengers.map(p => p.name).join(', ');
         const primaryMobile = ticketData.passengers[0]?.mobile || 'N/A';
         
-        // Save to sheet
-        await sheet.addRow({
-            'id': ticketId,
-            'from_station': ticketData.from_station,
-            'to_station': ticketData.to_station,
-            'passengers': passengerNames,
-            'status': 'received',
-            'created': new Date().toISOString(),
-            'class': ticketData.class,
-            'journey_date': ticketData.journey_date,
-            'mobile': primaryMobile,
-            'train_type': ticketData.train_type || '',
-            'remark': ticketData.remark || '',
-            'created_by': ticketData.username
-        });
+        // Create mock ticket
+        const newTicket = {
+            id: ticketId,
+            from_station: ticketData.from_station,
+            to_station: ticketData.to_station,
+            passengers: passengerNames,
+            status: 'received',
+            created: new Date().toISOString(),
+            class: ticketData.class,
+            journey_date: ticketData.journey_date,
+            mobile: primaryMobile,
+            train_type: ticketData.train_type || '',
+            remark: ticketData.remark || '',
+            created_by: ticketData.username
+        };
+
+        // Add to mock database
+        mockTickets.push(newTicket);
+
+        console.log('✅ Ticket saved:', newTicket);
 
         res.json({ 
             success: true, 
             ticketId: ticketId,
-            message: 'Ticket saved successfully'
+            message: 'Ticket saved successfully (Mock Database)'
         });
 
     } catch (error) {
@@ -60,31 +65,36 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Get all tickets
+// Get all tickets (mock version)
 router.get('/', async (req, res) => {
     try {
-        const sheet = doc.sheetsByIndex[0];
-        const rows = await sheet.getRows();
-        
-        const tickets = rows.map(row => ({
-            id: row.get('id'),
-            from_station: row.get('from_station'),
-            to_station: row.get('to_station'),
-            passengers: row.get('passengers'),
-            status: row.get('status'),
-            created: row.get('created'),
-            class: row.get('class'),
-            journey_date: row.get('journey_date'),
-            mobile: row.get('mobile'),
-            train_type: row.get('train_type'),
-            remark: row.get('remark'),
-            created_by: row.get('created_by')
-        }));
+        // Return tickets sorted by creation date (newest first)
+        const sortedTickets = mockTickets.sort((a, b) => 
+            new Date(b.created) - new Date(a.created)
+        );
 
-        res.json(tickets);
+        res.json(sortedTickets);
 
     } catch (error) {
         console.error('Error getting tickets:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Additional endpoints for future functionality
+router.patch('/:id', async (req, res) => {
+    try {
+        const ticketId = req.params.id;
+        const updates = req.body;
+        
+        const ticketIndex = mockTickets.findIndex(t => t.id === ticketId);
+        if (ticketIndex !== -1) {
+            mockTickets[ticketIndex] = { ...mockTickets[ticketIndex], ...updates };
+            res.json({ success: true, message: 'Ticket updated' });
+        } else {
+            res.status(404).json({ success: false, error: 'Ticket not found' });
+        }
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
