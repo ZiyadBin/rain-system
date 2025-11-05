@@ -7,7 +7,7 @@ let mockTickets = [
         id: 'TKT1701234567',
         from_station: 'Tirur',
         to_station: 'Chennai',
-        passengers: 'John Doe, Jane Doe',
+        passengers: 'John Doe (25/Male), Jane Doe (30/Female)',
         status: 'received',
         created: new Date().toISOString(),
         class: 'Sleeper',
@@ -26,7 +26,12 @@ router.post('/', async (req, res) => {
         
         // Generate ticket ID
         const ticketId = 'TKT' + Date.now();
-        const passengerNames = ticketData.passengers.map(p => p.name).join(', ');
+        
+        // Format passengers with age and gender
+        const passengerDetails = ticketData.passengers.map(p => 
+            `${p.name}${p.age ? ` (${p.age}` : ''}${p.gender ? `/${p.gender}` : ''}${p.age ? ')' : ''}`
+        ).join(', ');
+        
         const primaryMobile = ticketData.passengers[0]?.mobile || 'N/A';
         
         // Create mock ticket
@@ -34,7 +39,7 @@ router.post('/', async (req, res) => {
             id: ticketId,
             from_station: ticketData.from_station,
             to_station: ticketData.to_station,
-            passengers: passengerNames,
+            passengers: passengerDetails,
             status: 'received',
             created: new Date().toISOString(),
             class: ticketData.class,
@@ -53,7 +58,7 @@ router.post('/', async (req, res) => {
         res.json({ 
             success: true, 
             ticketId: ticketId,
-            message: 'Ticket saved successfully (Mock Database)'
+            message: 'Ticket saved successfully'
         });
 
     } catch (error) {
@@ -65,11 +70,25 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Get all tickets (mock version)
+// Get tickets with filter option
 router.get('/', async (req, res) => {
     try {
+        const { filter } = req.query;
+        let filteredTickets = [...mockTickets];
+
+        // Apply filters
+        if (filter === 'MY' && req.headers['user-name']) {
+            filteredTickets = mockTickets.filter(ticket => 
+                ticket.created_by === req.headers['user-name']
+            );
+        } else if (filter && filter !== 'ALL') {
+            filteredTickets = mockTickets.filter(ticket => 
+                ticket.created_by === filter
+            );
+        }
+
         // Return tickets sorted by creation date (newest first)
-        const sortedTickets = mockTickets.sort((a, b) => 
+        const sortedTickets = filteredTickets.sort((a, b) => 
             new Date(b.created) - new Date(a.created)
         );
 
@@ -81,8 +100,24 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Additional endpoints for future functionality
-router.patch('/:id', async (req, res) => {
+// Get ticket by ID
+router.get('/:id', async (req, res) => {
+    try {
+        const ticketId = req.params.id;
+        const ticket = mockTickets.find(t => t.id === ticketId);
+        
+        if (ticket) {
+            res.json(ticket);
+        } else {
+            res.status(404).json({ error: 'Ticket not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update ticket
+router.put('/:id', async (req, res) => {
     try {
         const ticketId = req.params.id;
         const updates = req.body;
@@ -90,7 +125,24 @@ router.patch('/:id', async (req, res) => {
         const ticketIndex = mockTickets.findIndex(t => t.id === ticketId);
         if (ticketIndex !== -1) {
             mockTickets[ticketIndex] = { ...mockTickets[ticketIndex], ...updates };
-            res.json({ success: true, message: 'Ticket updated' });
+            res.json({ success: true, message: 'Ticket updated successfully' });
+        } else {
+            res.status(404).json({ success: false, error: 'Ticket not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete ticket
+router.delete('/:id', async (req, res) => {
+    try {
+        const ticketId = req.params.id;
+        const ticketIndex = mockTickets.findIndex(t => t.id === ticketId);
+        
+        if (ticketIndex !== -1) {
+            mockTickets.splice(ticketIndex, 1);
+            res.json({ success: true, message: 'Ticket deleted successfully' });
         } else {
             res.status(404).json({ success: false, error: 'Ticket not found' });
         }
