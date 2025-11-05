@@ -2,10 +2,19 @@ const express = require('express');
 const router = express.Router();
 const ticketController = require('../controllers/ticketController');
 
-router.post('/', ticketController.saveTicket);
+// Get all tickets with filtering
 router.get('/', ticketController.getTickets);
-router.get('/:id', ticketController.getTicket);
+
+// Get single ticket by ID
+router.get('/:id', ticketController.getTicketById);
+
+// Create new ticket
+router.post('/', ticketController.createTicket);
+
+// Update ticket
 router.put('/:id', ticketController.updateTicket);
+
+// Delete ticket
 router.delete('/:id', ticketController.deleteTicket);
 
 module.exports = router;
