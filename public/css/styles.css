@@ -406,3 +406,258 @@ button:disabled {
         align-items: flex-start;
     }
 }
+/* New Vertical Queue Layout */
+.routes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.route-sticky-note {
+    background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+    border: 2px solid #ffd54f;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+}
+
+.route-header {
+    border-bottom: 2px solid #ffd54f;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.route-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+}
+
+.passenger-count {
+    background: #4caf50;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.groups-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.passenger-group {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.passenger-group:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.group-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed #ddd;
+}
+
+.group-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.group-checkbox {
+    width: 16px;
+    height: 16px;
+}
+
+.group-number {
+    background: #2196F3;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.group-info {
+    flex: 1;
+}
+
+.group-passenger-count {
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+}
+
+.group-meta {
+    font-size: 11px;
+    color: #666;
+    display: block;
+}
+
+.group-details {
+    margin-bottom: 12px;
+}
+
+.ticket-class {
+    background: #e3f2fd;
+    color: #1976d2;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 8px;
+}
+
+.train-type {
+    background: #fff3e0;
+    color: #f57c00;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: inline-block;
+    margin-left: 5px;
+    margin-bottom: 8px;
+}
+
+.passengers-list {
+    margin: 10px 0;
+}
+
+.passenger-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.passenger-item:last-child {
+    border-bottom: none;
+}
+
+.passenger-name {
+    font-weight: bold;
+    color: #333;
+    min-width: 120px;
+}
+
+.passenger-age, .passenger-gender {
+    background: #f5f5f5;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: #666;
+}
+
+.contact-info {
+    margin: 8px 0;
+    padding: 8px;
+    background: #f0f8ff;
+    border-radius: 5px;
+    border-left: 3px solid #2196F3;
+}
+
+.group-remark {
+    margin: 8px 0;
+    padding: 8px;
+    background: #fff8e1;
+    border-radius: 5px;
+    font-size: 12px;
+    border-left: 3px solid #ffc107;
+}
+
+.created-by {
+    font-size: 11px;
+    color: #888;
+    text-align: right;
+    margin-top: 8px;
+}
+
+.group-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+
+.action-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+}
+
+.booked-btn { background: #4caf50; color: white; }
+.edit-btn { background: #2196F3; color: white; }
+.assign-btn { background: #ff9800; color: white; }
+.delete-btn { background: #f44336; color: white; }
+
+.staff-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.staff-assign-btn {
+    background: #ff9800;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.staff-assign-btn:hover {
+    background: #f57c00;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .routes-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .group-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .group-actions {
+        justify-content: center;
+    }
+    
+    .passenger-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
