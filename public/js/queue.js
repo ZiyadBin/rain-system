@@ -1,4 +1,4 @@
-// queue.js - Queue module with optimized space and inline editing
+// queue.js - Queue module with optimized space and selection-based actions
 const queue = {
     currentEditingTicket: null,
     selectedGroups: new Set(),
@@ -28,11 +28,12 @@ const queue = {
                 
                 <!-- Bulk Actions (shown when groups are selected) -->
                 <div id="bulk-actions" class="bulk-actions" style="display: none;">
-                    <strong>Bulk Actions:</strong>
-                    <button class="action-btn booked-btn" onclick="queue.bulkMarkAsBooked()">✅ Mark Selected as Booked</button>
+                    <strong>Selected: <span id="selected-count">0</span> groups</strong>
+                    <button class="action-btn edit-btn" onclick="queue.bulkEdit()">✏️ Edit Selected</button>
+                    <button class="action-btn booked-btn" onclick="queue.bulkMarkAsBooked()">✅ Mark as Booked</button>
                     <button class="action-btn assign-btn" onclick="queue.showBulkAssignModal()">👥 Assign Selected</button>
                     <button class="action-btn delete-btn" onclick="queue.bulkDelete()">🗑️ Delete Selected</button>
-                    <button class="action-btn" onclick="queue.clearSelection()" style="background: #6c757d;">❌ Clear Selection</button>
+                    <button class="action-btn" onclick="queue.clearSelection()" style="background: #6c757d;">❌ Clear</button>
                 </div>
                 
                 <div id="queue-content">
@@ -118,13 +119,8 @@ const queue = {
                                 </div>
                                 <div class="group-meta">
                                     <span>Journey: ${journeyDate}</span>
-                                    <span>Created: ${createdDate} by ${ticket.created_by}</span>
+                                    <span>Created: ${createdDate}</span>
                                 </div>
-                            </div>
-                            <div class="group-actions-right" style="display: ${isSelected ? 'flex' : 'none'}">
-                                <button class="action-btn-small booked-btn" onclick="queue.markAsBooked('${ticket.id}')" title="Mark as Booked">✅</button>
-                                <button class="action-btn-small assign-btn" onclick="queue.showAssignModal('${ticket.id}')" title="Assign to Staff">👥</button>
-                                <button class="action-btn-small delete-btn" onclick="queue.deleteTicket('${ticket.id}')" title="Delete">🗑️</button>
                             </div>
                         </div>
                         
@@ -142,6 +138,10 @@ const queue = {
                                 <strong>💡</strong> ${ticket.remark.length > 50 ? ticket.remark.substring(0, 50) + '...' : ticket.remark}
                             </div>
                             ` : ''}
+                            
+                            <div class="created-by-compact">
+                                Created by: ${ticket.created_by}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -156,20 +156,6 @@ const queue = {
         html += '</div>';
         queueContent.innerHTML = html;
         document.getElementById('queue-count').textContent = `${tickets.length} tickets`;
-        
-        // Add double-click listeners for inline editing
-        this.addInlineEditListeners();
-    },
-
-    addInlineEditListeners() {
-        // Add double-click listeners for inline editing
-        document.querySelectorAll('.group-main-info').forEach(element => {
-            element.addEventListener('dblclick', (e) => {
-                const groupElement = e.target.closest('.passenger-group');
-                const ticketId = groupElement.dataset.ticketId;
-                this.editTicket(ticketId);
-            });
-        });
     },
 
     toggleGroupSelection(ticketId) {
@@ -181,14 +167,10 @@ const queue = {
         
         // Update UI
         const groupElement = document.querySelector(`[data-ticket-id="${ticketId}"]`);
-        const actionsElement = groupElement.querySelector('.group-actions-right');
-        
         if (this.selectedGroups.has(ticketId)) {
             groupElement.classList.add('selected');
-            actionsElement.style.display = 'flex';
         } else {
             groupElement.classList.remove('selected');
-            actionsElement.style.display = 'none';
         }
         
         // Show/hide bulk actions
@@ -197,8 +179,11 @@ const queue = {
 
     toggleBulkActions() {
         const bulkActions = document.getElementById('bulk-actions');
+        const selectedCount = document.getElementById('selected-count');
+        
         if (this.selectedGroups.size > 0) {
-            bulkActions.style.display = 'block';
+            bulkActions.style.display = 'flex';
+            selectedCount.textContent = this.selectedGroups.size;
         } else {
             bulkActions.style.display = 'none';
         }
@@ -208,10 +193,21 @@ const queue = {
         this.selectedGroups.clear();
         document.querySelectorAll('.passenger-group').forEach(group => {
             group.classList.remove('selected');
-            group.querySelector('.group-actions-right').style.display = 'none';
             group.querySelector('.group-checkbox').checked = false;
         });
         this.toggleBulkActions();
+    },
+
+    bulkEdit() {
+        if (this.selectedGroups.size === 0) return;
+        
+        if (this.selectedGroups.size === 1) {
+            // Single edit - open edit modal for the first selected ticket
+            const ticketId = Array.from(this.selectedGroups)[0];
+            this.editTicket(ticketId);
+        } else {
+            app.showMessage('⚠️ Please select only one ticket to edit', 'error');
+        }
     },
 
     async bulkMarkAsBooked() {
@@ -278,11 +274,18 @@ const queue = {
                     ${staffList}
                 </div>
                 <div class="modal-actions">
-                    <button class="close-btn" onclick="queue.closeEditModal()">Cancel</button>
+                    <button type="button" class="close-btn" onclick="queue.closeEditModal()">Cancel</button>
                 </div>
             </div>
         `;
         modal.style.display = 'flex';
+        
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeEditModal();
+            }
+        });
     },
 
     async bulkAssignToStaff(staffName) {
@@ -299,14 +302,134 @@ const queue = {
             app.showMessage(`✅ ${this.selectedGroups.size} groups assigned to ${staffName}!`, 'success');
             this.closeEditModal();
             this.clearSelection();
-            this.loadTickets(); // Refresh to show changes
+            this.loadTickets(); // Refresh to show changes immediately
         } catch (error) {
             app.showMessage('❌ Error assigning groups', 'error');
         }
     },
 
-    // ... (keep all other existing methods: formatPassengersDisplay, filterTickets, editTicket, showAssignModal, assignTicket, etc.)
-    // Only the displayTickets method is significantly changed
+    filterTickets(filter) {
+        app.currentFilter = filter;
+        this.loadTickets();
+        
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+    },
+
+    async editTicket(ticketId) {
+        try {
+            const response = await fetch(`${app.API_BASE}/api/tickets/${ticketId}`);
+            const ticket = await response.json();
+            
+            this.currentEditingTicket = ticket;
+            this.renderEditModal(ticket);
+            
+        } catch (error) {
+            app.showMessage('❌ Error loading ticket: ' + error.message, 'error');
+        }
+    },
+
+    renderEditModal(ticket) {
+        const modal = document.getElementById('editModal');
+        modal.innerHTML = `
+            <div class="edit-modal-content">
+                <h3>Edit Ticket</h3>
+                <form id="editForm">
+                    <div class="edit-form-group">
+                        <label for="edit-from-station">From Station</label>
+                        <input type="text" id="edit-from-station" value="${ticket.from_station}" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="edit-to-station">To Station</label>
+                        <input type="text" id="edit-to-station" value="${ticket.to_station}" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="edit-class">Class</label>
+                        <select id="edit-class" required>
+                            <option value="Sleeper" ${ticket.class === 'Sleeper' ? 'selected' : ''}>Sleeper</option>
+                            <option value="3A" ${ticket.class === '3A' ? 'selected' : ''}>3A</option>
+                            <option value="2A" ${ticket.class === '2A' ? 'selected' : ''}>2A</option>
+                            <option value="1A" ${ticket.class === '1A' ? 'selected' : ''}>1A</option>
+                        </select>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="edit-train-type">Train Type</label>
+                        <input type="text" id="edit-train-type" value="${ticket.train_type || ''}">
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="edit-journey-date">Journey Date</label>
+                        <input type="date" id="edit-journey-date" value="${ticket.journey_date}" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="edit-status">Status</label>
+                        <select id="edit-status" required>
+                            <option value="received" ${ticket.status === 'received' ? 'selected' : ''}>Received</option>
+                            <option value="assigned" ${ticket.status === 'assigned' ? 'selected' : ''}>Assigned</option>
+                            <option value="booked" ${ticket.status === 'booked' ? 'selected' : ''}>Booked</option>
+                        </select>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="edit-remark">Remarks</label>
+                        <textarea id="edit-remark" rows="3">${ticket.remark || ''}</textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="close-btn" onclick="queue.closeEditModal()">Cancel</button>
+                        <button type="submit" class="save-btn">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        `;
+        
+        document.getElementById('editForm').addEventListener('submit', (e) => this.saveEditedTicket(e));
+        modal.style.display = 'flex';
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closeEditModal();
+            }
+        });
+    },
+
+    closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+        this.currentEditingTicket = null;
+    },
+
+    async saveEditedTicket(event) {
+        event.preventDefault();
+        
+        try {
+            const updates = {
+                from_station: document.getElementById('edit-from-station').value,
+                to_station: document.getElementById('edit-to-station').value,
+                class: document.getElementById('edit-class').value,
+                train_type: document.getElementById('edit-train-type').value,
+                journey_date: document.getElementById('edit-journey-date').value,
+                status: document.getElementById('edit-status').value,
+                remark: document.getElementById('edit-remark').value
+            };
+
+            const response = await fetch(`${app.API_BASE}/api/tickets/${this.currentEditingTicket.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                app.showMessage('✅ Ticket updated successfully!', 'success');
+                this.closeEditModal();
+                this.clearSelection();
+                this.loadTickets();
+            } else {
+                app.showMessage('❌ Error updating ticket', 'error');
+            }
+        } catch (error) {
+            app.showMessage('❌ Error: ' + error.message, 'error');
+        }
+    },
 
     formatPassengersDisplay(passengersString) {
         const passengers = passengersString.split(',').map(p => p.trim());
@@ -331,28 +454,5 @@ const queue = {
                 </div>
             `;
         }).join('');
-    },
-
-    async assignTicket(ticketId, staffName) {
-        try {
-            const response = await fetch(`${app.API_BASE}/api/tickets/${ticketId}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ assigned_to: staffName, created_by: staffName })
-            });
-            
-            const result = await response.json();
-            if (result.success) {
-                app.showMessage(`✅ Ticket assigned to ${staffName}!`, 'success');
-                this.closeEditModal();
-                this.loadTickets(); // Refresh to remove from current view
-            } else {
-                app.showMessage('❌ Error assigning ticket', 'error');
-            }
-        } catch (error) {
-            app.showMessage('❌ Error: ' + error.message, 'error');
-        }
-    },
-
-    // ... (keep all other existing methods unchanged)
+    }
 };
