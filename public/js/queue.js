@@ -1,4 +1,4 @@
-// queue.js - Queue module
+// queue.js - Queue module with vertical layout and group management
 const queue = {
     currentEditingTicket: null,
 
@@ -40,100 +40,146 @@ const queue = {
             });
             const tickets = await response.json();
             
-            const queueContent = document.getElementById('queue-content');
-            
-            if (!tickets || tickets.length === 0) {
-                queueContent.innerHTML = '<p>No tickets found with current filter.</p>';
-                document.getElementById('queue-count').textContent = '0 tickets';
-                return;
-            }
-            
-            // Group by route
-            const routes = {};
-            tickets.forEach(ticket => {
-                const route = `${ticket.from_station} → ${ticket.to_station}`;
-                if (!routes[route]) routes[route] = [];
-                routes[route].push(ticket);
-            });
-            
-            let html = '';
-            Object.keys(routes).forEach(route => {
-                html += `<div class="route-header">${route}</div>`;
-                html += `<div class="queue-container">`;
-                
-                routes[route].forEach(ticket => {
-                    const createdDate = new Date(ticket.created).toLocaleDateString();
-                    const journeyDate = ticket.journey_date ? new Date(ticket.journey_date).toLocaleDateString() : 'Not set';
-                    const firstPassengerName = ticket.passengers.split(',')[0].split(' (')[0];
-                    
-                    html += `
-                        <div class="sticky-note">
-                            <div class="note-header">
-                                <span class="note-id">${firstPassengerName}</span>
-                                <span class="note-status">${ticket.status}</span>
-                            </div>
-                            
-                            <div class="note-details">
-                                <div class="note-detail">
-                                    <span class="detail-label">Ticket ID:</span>
-                                    <span class="detail-value">${ticket.id}</span>
-                                </div>
-                                <div class="note-detail">
-                                    <span class="detail-label">Class:</span>
-                                    <span class="detail-value">${ticket.class}</span>
-                                </div>
-                                <div class="note-detail">
-                                    <span class="detail-label">Journey:</span>
-                                    <span class="detail-value">${journeyDate}</span>
-                                </div>
-                                ${ticket.train_type ? `
-                                <div class="note-detail">
-                                    <span class="detail-label">Train Type:</span>
-                                    <span class="detail-value">${ticket.train_type}</span>
-                                </div>
-                                ` : ''}
-                                <div class="note-detail">
-                                    <span class="detail-label">Mobile:</span>
-                                    <span class="detail-value">${ticket.mobile || 'N/A'}</span>
-                                </div>
-                                <div class="note-detail">
-                                    <span class="detail-label">Created By:</span>
-                                    <span class="detail-value">${ticket.created_by}</span>
-                                </div>
-                                <div class="note-detail">
-                                    <span class="detail-label">Created:</span>
-                                    <span class="detail-value">${createdDate}</span>
-                                </div>
-                            </div>
-                            
-                            <div class="note-passengers">
-                                <strong>Passengers:</strong> ${ticket.passengers}
-                            </div>
-                            
-                            ${ticket.remark ? `
-                            <div class="note-passengers">
-                                <strong>Remarks:</strong> ${ticket.remark}
-                            </div>
-                            ` : ''}
-                            
-                            <div class="note-actions">
-                                <button class="btn-small" style="background: #28a745;" onclick="queue.markAsBooked('${ticket.id}')">✅ Booked</button>
-                                <button class="btn-small" style="background: #17a2b8;" onclick="queue.editTicket('${ticket.id}')">✏️ Edit</button>
-                                <button class="btn-small" style="background: #dc3545;" onclick="queue.deleteTicket('${ticket.id}')">🗑️ Delete</button>
-                            </div>
-                        </div>
-                    `;
-                });
-                
-                html += `</div>`;
-            });
-            
-            queueContent.innerHTML = html;
-            document.getElementById('queue-count').textContent = `${tickets.length} tickets`;
+            this.displayTickets(tickets);
             
         } catch (error) {
             app.showMessage('❌ Error loading queue: ' + error.message, 'error');
         }
+    },
+
+    displayTickets(tickets) {
+        const queueContent = document.getElementById('queue-content');
+        
+        if (!tickets || tickets.length === 0) {
+            queueContent.innerHTML = '<p>No tickets found with current filter.</p>';
+            document.getElementById('queue-count').textContent = '0 tickets';
+            return;
+        }
+        
+        // Group by route
+        const routes = {};
+        tickets.forEach(ticket => {
+            const route = `${ticket.from_station} → ${ticket.to_station}`;
+            if (!routes[route]) routes[route] = [];
+            routes[route].push(ticket);
+        });
+        
+        let html = '<div class="routes-grid">';
+        
+        Object.keys(routes).forEach(route => {
+            const routeTickets = routes[route];
+            const totalPassengers = routeTickets.reduce((total, ticket) => {
+                // Count passengers from passenger string (e.g., "John (25/Male), Jane (30/Female)" = 2 passengers)
+                return total + (ticket.passengers.split(',').length);
+            }, 0);
+            
+            html += `
+                <div class="route-sticky-note">
+                    <div class="route-header">
+                        <div class="route-title">
+                            <strong>${route}</strong>
+                            <span class="passenger-count">👥 ${totalPassengers} passengers</span>
+                        </div>
+                    </div>
+                    
+                    <div class="groups-container">
+            `;
+            
+            routeTickets.forEach((ticket, index) => {
+                const createdDate = new Date(ticket.created).toLocaleDateString();
+                const journeyDate = ticket.journey_date ? new Date(ticket.journey_date).toLocaleDateString() : 'Not set';
+                const groupPassengerCount = ticket.passengers.split(',').length;
+                
+                html += `
+                    <div class="passenger-group">
+                        <div class="group-header">
+                            <div class="group-selector">
+                                <input type="checkbox" class="group-checkbox" id="group-${ticket.id}">
+                                <label for="group-${ticket.id}" class="group-number">${index + 1}</label>
+                            </div>
+                            <div class="group-info">
+                                <span class="group-passenger-count">${groupPassengerCount} passenger${groupPassengerCount > 1 ? 's' : ''}</span>
+                                <span class="group-meta">Created: ${createdDate} • Journey: ${journeyDate}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="group-details">
+                            <div class="ticket-class">${ticket.class} Class</div>
+                            ${ticket.train_type ? `<div class="train-type">${ticket.train_type}</div>` : ''}
+                            
+                            <div class="passengers-list">
+                                ${this.formatPassengersDisplay(ticket.passengers)}
+                            </div>
+                            
+                            <div class="contact-info">
+                                <strong>📱 ${ticket.mobile || 'N/A'}</strong>
+                            </div>
+                            
+                            ${ticket.remark ? `
+                            <div class="group-remark">
+                                <strong>Remarks:</strong> ${ticket.remark}
+                            </div>
+                            ` : ''}
+                            
+                            <div class="created-by">
+                                Created by: ${ticket.created_by}
+                            </div>
+                        </div>
+                        
+                        <div class="group-actions">
+                            <button class="action-btn booked-btn" onclick="queue.markAsBooked('${ticket.id}')">
+                                ✅ Booked
+                            </button>
+                            <button class="action-btn edit-btn" onclick="queue.editTicket('${ticket.id}')">
+                                ✏️ Edit
+                            </button>
+                            <button class="action-btn assign-btn" onclick="queue.showAssignModal('${ticket.id}')">
+                                👥 Assign
+                            </button>
+                            <button class="action-btn delete-btn" onclick="queue.deleteTicket('${ticket.id}')">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        queueContent.innerHTML = html;
+        document.getElementById('queue-count').textContent = `${tickets.length} tickets`;
+    },
+
+    formatPassengersDisplay(passengersString) {
+        // Convert "John (25/Male), Jane (30/Female)" to formatted HTML
+        const passengers = passengersString.split(',').map(p => p.trim());
+        return passengers.map(passenger => {
+            // Extract name, age, gender
+            const nameMatch = passenger.match(/^([^(]+)/);
+            const detailsMatch = passenger.match(/\(([^)]+)\)/);
+            
+            const name = nameMatch ? nameMatch[0].trim() : passenger;
+            let age = '', gender = '';
+            
+            if (detailsMatch) {
+                const details = detailsMatch[1].split('/');
+                age = details[0] || '';
+                gender = details[1] || '';
+            }
+            
+            return `
+                <div class="passenger-item">
+                    <span class="passenger-name">${name}</span>
+                    ${age ? `<span class="passenger-age">${age}</span>` : ''}
+                    ${gender ? `<span class="passenger-gender">${gender}</span>` : ''}
+                </div>
+            `;
+        }).join('');
     },
 
     filterTickets(filter) {
@@ -152,14 +198,62 @@ const queue = {
             const ticket = await response.json();
             
             this.currentEditingTicket = ticket;
-            
-            // Render edit modal
             this.renderEditModal(ticket);
             
         } catch (error) {
             app.showMessage('❌ Error loading ticket: ' + error.message, 'error');
         }
     },
+
+    showAssignModal(ticketId) {
+        // Simple assign functionality - you can enhance this with a proper modal
+        const staffMembers = ['Ziyad', 'Najad', 'Babu'].filter(name => name !== app.currentUser.name);
+        
+        const staffList = staffMembers.map(staff => 
+            `<button class="staff-assign-btn" onclick="queue.assignTicket('${ticketId}', '${staff}')">
+                Assign to ${staff}
+            </button>`
+        ).join('');
+        
+        const modal = document.getElementById('editModal');
+        modal.innerHTML = `
+            <div class="edit-modal-content">
+                <h3>Assign Ticket</h3>
+                <p>Select staff member to assign this ticket:</p>
+                <div class="staff-list">
+                    ${staffList}
+                </div>
+                <div class="modal-actions">
+                    <button class="close-btn" onclick="queue.closeEditModal()">Cancel</button>
+                </div>
+            </div>
+        `;
+        modal.style.display = 'flex';
+    },
+
+    async assignTicket(ticketId, staffName) {
+        try {
+            const response = await fetch(`${app.API_BASE}/api/tickets/${ticketId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assigned_to: staffName })
+            });
+            
+            const result = await response.json();
+            if (result.success) {
+                app.showMessage(`✅ Ticket assigned to ${staffName}!`, 'success');
+                this.closeEditModal();
+                this.loadTickets();
+            } else {
+                app.showMessage('❌ Error assigning ticket', 'error');
+            }
+        } catch (error) {
+            app.showMessage('❌ Error: ' + error.message, 'error');
+        }
+    },
+
+    // ... (keep the existing editModal, saveEditedTicket, deleteTicket, markAsBooked methods)
+    // Just add this new method:
 
     renderEditModal(ticket) {
         const modal = document.getElementById('editModal');
@@ -212,13 +306,9 @@ const queue = {
             </div>
         `;
         
-        // Add event listener for form submission
         document.getElementById('editForm').addEventListener('submit', (e) => this.saveEditedTicket(e));
-        
-        // Show the modal
         modal.style.display = 'flex';
         
-        // Close modal when clicking outside
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 this.closeEditModal();
@@ -226,6 +316,7 @@ const queue = {
         });
     },
 
+    // ... (keep all other existing methods: closeEditModal, saveEditedTicket, deleteTicket, markAsBooked)
     closeEditModal() {
         document.getElementById('editModal').style.display = 'none';
         this.currentEditingTicket = null;
