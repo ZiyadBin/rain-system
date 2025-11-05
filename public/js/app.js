@@ -6,7 +6,21 @@ const app = {
 
     init() {
         console.log('🌧️ Rain System initialized');
+        this.injectCSS();
         this.setupEventListeners();
+    },
+
+    injectCSS() {
+        // Inject the CSS styles from your original code
+        const style = document.createElement('style');
+        style.textContent = `
+            /* Add all the CSS from your original file here */
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); line-height: 1.6; min-height: 100vh; padding: 20px; }
+            .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+            /* ... include all your CSS styles from the original file ... */
+        `;
+        document.head.appendChild(style);
     },
 
     showPage(pageId) {
