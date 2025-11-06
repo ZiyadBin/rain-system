@@ -896,24 +896,77 @@ button:disabled {
     background: white;
     border-radius: 8px;
     border: 1px solid #e0e0e0;
+    margin-top: 20px;
 }
 
+/* Enhanced History Table Styles */
 .history-table {
     width: 100%;
     border-collapse: collapse;
-}
-
-.history-table th,
-.history-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #e0e0e0;
+    font-size: 14px;
+    min-width: 1000px; /* Ensure table doesn't get too narrow */
 }
 
 .history-table th {
-    background: #f8f9fa;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 8px;
+    text-align: left;
     font-weight: bold;
-    color: #333;
+    position: sticky;
+    top: 0;
+    border: none;
+}
+
+.history-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid #e0e0e0;
+    vertical-align: top;
+}
+
+.history-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.history-table tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+.history-table tr:nth-child(even):hover {
+    background-color: #f1f3f4;
+}
+
+/* Excel Export Button */
+.export-btn {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.export-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Action buttons in table */
+.history-table .action-btn-small {
+    padding: 4px 8px;
+    font-size: 11px;
+    margin: 2px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.history-table .action-btn-small:hover {
+    transform: translateY(-1px);
 }
 
 .balance-cell.paid {
@@ -1139,6 +1192,21 @@ optgroup[label="Non-AC Classes"] {
     .stats-grid {
         grid-template-columns: 1fr;
     }
+    
+    .history-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .history-table {
+        font-size: 12px;
+        min-width: 800px;
+    }
+    
+    .history-table th,
+    .history-table td {
+        padding: 8px 4px;
+    }
 }
 
 @media (max-width: 600px) {
@@ -1170,5 +1238,9 @@ optgroup[label="Non-AC Classes"] {
         flex-direction: column;
         align-items: flex-start;
         gap: 2px;
+    }
+    
+    .history-table {
+        min-width: 600px;
     }
 }
