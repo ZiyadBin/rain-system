@@ -1,7 +1,7 @@
 // app.js - Main application controller
 const app = {
     currentUser: null,
-    currentFilter: 'MY',
+    currentFilter: 'MY', // FIXED: Default to 'MY' for user's tickets only
     API_BASE: window.location.origin,
     updateTimeInterval: null,
 
