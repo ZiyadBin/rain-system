@@ -1,4 +1,4 @@
-// quickEntry.js - Enhanced with station autocomplete and WhatsApp parser
+// quickEntry.js - Enhanced with train number and boarding station
 const quickEntry = {
     stations: [],
     latestTickets: [],
@@ -41,24 +41,34 @@ const quickEntry = {
                                 <input type="text" id="to-station" placeholder="Type station code or name..." required>
                                 <div class="autocomplete-dropdown" id="to-station-dropdown"></div>
                             </div>
+
+                            <div class="form-group">
+                                <label for="boarding-station">Boarding Station (Optional)</label>
+                                <input type="text" id="boarding-station" placeholder="Type station code or name...">
+                                <div class="autocomplete-dropdown" id="boarding-station-dropdown"></div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="train-number">Train Number/Name *</label>
+                                <input type="text" id="train-number" placeholder="e.g., 12218 or Chennai Mail" required>
+                            </div>
                             
                             <div class="form-group">
                                 <label for="class">Class *</label>
                                 <select id="class" required>
                                     <option value="">Select Class</option>
-                                    <option value="2S">Second Seating (2S)</option>
-                                    <option value="CC">AC Chair Car (CC)</option>
-                                    <option value="EC">Executive Chair Car (EC)</option>
-                                    <option value="SL">Sleeper (SL)</option>
-                                    <option value="3A">AC 3 Tier (3A)</option>
-                                    <option value="2A">AC 2 Tier (2A)</option>
-                                    <option value="1A">First AC (1A)</option>
+                                    <optgroup label="AC Classes">
+                                        <option value="1A">First AC (1A)</option>
+                                        <option value="2A">AC 2 Tier (2A)</option>
+                                        <option value="3A">AC 3 Tier (3A)</option>
+                                        <option value="CC">AC Chair Car (CC)</option>
+                                        <option value="EC">Executive Chair Car (EC)</option>
+                                    </optgroup>
+                                    <optgroup label="Non-AC Classes">
+                                        <option value="SL">Sleeper (SL)</option>
+                                        <option value="2S">Second Seating (2S)</option>
+                                    </optgroup>
                                 </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="train-type">Train Type (Optional)</label>
-                                <input type="text" id="train-type" placeholder="e.g., Express, Superfast, etc.">
                             </div>
                             
                             <div class="form-group">
@@ -103,33 +113,8 @@ const quickEntry = {
                         </div>
                     </div>
 
-                    <!-- Right Side - WhatsApp Parser & Latest Entries -->
+                    <!-- Right Side - Latest Entries Only -->
                     <div class="side-panel">
-                        <!-- WhatsApp Parser -->
-                        <div class="whatsapp-parser-section">
-                            <h3>📱 WhatsApp Parser</h3>
-                            <div class="parser-info">
-                                <strong>Format to paste:</strong><br>
-                                FROM TO TrainType<br>
-                                Class<br>
-                                NAME AGE GENDER<br>
-                                Mobile Number
-                            </div>
-                            <textarea 
-                                id="whatsapp-input" 
-                                placeholder="Paste WhatsApp message here...
-Example:
-CSTM KYN Express
-SL
-John 25 Male
-9876543210"
-                                rows="8"
-                            ></textarea>
-                            <button onclick="quickEntry.parseWhatsApp()" style="background: #2196F3; width: 100%; margin-top: 10px;">
-                                🚀 Auto Fill from WhatsApp
-                            </button>
-                        </div>
-
                         <!-- Latest Entries -->
                         <div class="latest-entries-section">
                             <h3>📋 Latest Entries</h3>
@@ -142,9 +127,10 @@ John 25 Male
             </div>
         `;
 
-        // Initialize autocomplete
+        // Initialize autocomplete for all station fields
         this.initAutocomplete('from-station', 'from-station-dropdown');
         this.initAutocomplete('to-station', 'to-station-dropdown');
+        this.initAutocomplete('boarding-station', 'boarding-station-dropdown');
     },
 
     initAutocomplete(inputId, dropdownId) {
@@ -163,7 +149,7 @@ John 25 Male
             const matches = this.stations.filter(station => 
                 station.code.includes(query) || 
                 station.name.toUpperCase().includes(query)
-            ).slice(0, 8); // Limit to 8 results
+            ).slice(0, 8);
 
             if (matches.length > 0) {
                 matches.forEach(station => {
@@ -190,86 +176,6 @@ John 25 Male
                 dropdown.style.display = 'none';
             }
         });
-    },
-
-    parseWhatsApp() {
-        const input = document.getElementById('whatsapp-input').value.trim();
-        if (!input) {
-            app.showMessage('❌ Please paste WhatsApp message first', 'error');
-            return;
-        }
-
-        try {
-            const lines = input.split('\n').filter(line => line.trim());
-            
-            if (lines.length < 3) {
-                throw new Error('Invalid format. Need at least 3 lines');
-            }
-
-            // Line 1: FROM TO TrainType
-            const firstLine = lines[0].split(' ');
-            if (firstLine.length < 2) {
-                throw new Error('First line should be: FROM TO TrainType');
-            }
-
-            const fromStation = firstLine[0].toUpperCase();
-            const toStation = firstLine[1].toUpperCase();
-            const trainType = firstLine.slice(2).join(' ') || '';
-
-            // Validate stations
-            const fromStationData = this.stations.find(s => s.code === fromStation);
-            const toStationData = this.stations.find(s => s.code === toStation);
-
-            if (!fromStationData) {
-                throw new Error(`Invalid FROM station code: ${fromStation}`);
-            }
-            if (!toStationData) {
-                throw new Error(`Invalid TO station code: ${toStation}`);
-            }
-
-            // Line 2: Class
-            const ticketClass = lines[1].trim();
-
-            // Line 3: Passenger details
-            const passengerLine = lines[2].split(' ');
-            if (passengerLine.length < 2) {
-                throw new Error('Passenger line should be: NAME AGE GENDER');
-            }
-
-            const passengerName = passengerLine[0];
-            const passengerAge = passengerLine[1];
-            let passengerGender = passengerLine[2] || 'Male'; // Default to Male
-
-            // Line 4: Mobile number
-            const mobileLine = lines[3] ? lines[3].trim() : '';
-            const mobileNumber = mobileLine.replace(/\D/g, ''); // Remove non-digits
-
-            // Fill the form
-            document.getElementById('from-station').value = fromStation;
-            document.getElementById('to-station').value = toStation;
-            document.getElementById('train-type').value = trainType;
-            document.getElementById('class').value = ticketClass;
-
-            // Fill passenger details
-            const passengersList = document.getElementById('passengers-list');
-            passengersList.innerHTML = `
-                <div class="passenger-row">
-                    <input type="text" placeholder="Passenger Name *" class="passenger-name" value="${passengerName}" required>
-                    <input type="number" placeholder="Age" class="passenger-age" value="${passengerAge}" min="1" max="120">
-                    <select class="passenger-gender">
-                        <option value="Male" ${passengerGender === 'Male' ? 'selected' : ''}>Male</option>
-                        <option value="Female" ${passengerGender === 'Female' ? 'selected' : ''}>Female</option>
-                    </select>
-                    <input type="tel" placeholder="Mobile * (10 digits)" class="passenger-mobile" 
-                           value="${mobileNumber}" maxlength="10" pattern="[0-9]{10}" required>
-                </div>
-            `;
-
-            app.showMessage('✅ Form filled automatically from WhatsApp!', 'success');
-
-        } catch (error) {
-            app.showMessage(`❌ Parse Error: ${error.message}`, 'error');
-        }
     },
 
     async loadLatestTickets() {
@@ -305,6 +211,9 @@ John 25 Male
                     <div class="ticket-details">
                         <span>${firstPassenger}</span>
                         <span>${ticket.class} • ${journeyDate}</span>
+                    </div>
+                    <div class="ticket-train">
+                        ${ticket.train_number || 'No train'}
                     </div>
                     <div class="ticket-status ${ticket.status}">
                         ${ticket.status}
@@ -342,10 +251,10 @@ John 25 Male
         
         document.getElementById('from-station').value = '';
         document.getElementById('to-station').value = '';
+        document.getElementById('boarding-station').value = '';
+        document.getElementById('train-number').value = '';
         document.getElementById('class').value = '';
-        document.getElementById('train-type').value = '';
         document.getElementById('remark').value = '';
-        document.getElementById('whatsapp-input').value = '';
         
         // Set tomorrow's date
         this.setDefaultDate();
@@ -373,17 +282,20 @@ John 25 Male
             // Validate form
             const fromStation = document.getElementById('from-station').value.trim();
             const toStation = document.getElementById('to-station').value.trim();
+            const trainNumber = document.getElementById('train-number').value.trim();
             const journeyClass = document.getElementById('class').value;
             const journeyDate = document.getElementById('journey-date').value;
+            const boardingStation = document.getElementById('boarding-station').value.trim();
             
-            if (!fromStation || !toStation || !journeyClass || !journeyDate) {
-                app.showMessage('❌ Please fill all required fields (From, To, Class, Date)', 'error');
+            if (!fromStation || !toStation || !trainNumber || !journeyClass || !journeyDate) {
+                app.showMessage('❌ Please fill all required fields', 'error');
                 return;
             }
 
             // Validate station codes
             const fromStationData = this.stations.find(s => s.code === fromStation);
             const toStationData = this.stations.find(s => s.code === toStation);
+            const boardingStationData = boardingStation ? this.stations.find(s => s.code === boardingStation) : null;
 
             if (!fromStationData) {
                 app.showMessage(`❌ Invalid FROM station code: ${fromStation}`, 'error');
@@ -391,6 +303,10 @@ John 25 Male
             }
             if (!toStationData) {
                 app.showMessage(`❌ Invalid TO station code: ${toStation}`, 'error');
+                return;
+            }
+            if (boardingStation && !boardingStationData) {
+                app.showMessage(`❌ Invalid BOARDING station code: ${boardingStation}`, 'error');
                 return;
             }
 
@@ -437,9 +353,10 @@ John 25 Male
                 username: app.currentUser.name,
                 from_station: fromStation,
                 to_station: toStation,
+                train_number: trainNumber,
                 class: journeyClass,
                 journey_date: journeyDate,
-                train_type: document.getElementById('train-type').value.trim(),
+                boarding_station: boardingStation || '',
                 remark: document.getElementById('remark').value.trim(),
                 passengers: passengers
             };
@@ -454,7 +371,7 @@ John 25 Male
             const result = await response.json();
 
             if (result.success) {
-                app.showMessage(`✅ Ticket saved successfully! Ticket ID: ${result.ticketId}`, 'success');
+                app.showMessage(`✅ Ticket saved successfully!`, 'success');
                 this.resetForm();
                 this.loadLatestTickets(); // Refresh latest entries
             } else {
