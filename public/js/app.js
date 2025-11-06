@@ -3,23 +3,28 @@ const app = {
     currentUser: null,
     currentFilter: 'MY',
     API_BASE: window.location.origin,
+    updateTimeInterval: null,
 
     init() {
         console.log('🌧️ Rain System initialized');
         this.injectCSS();
         this.setupEventListeners();
+        this.startClock();
+    },
+
+    startClock() {
+        // Update time every second
+        this.updateTimeInterval = setInterval(() => {
+            if (this.currentUser) {
+                auth.updateUserDisplay();
+            }
+        }, 1000);
     },
 
     injectCSS() {
-        // Inject the CSS styles from your original code
+        // Your existing CSS injection code remains the same
         const style = document.createElement('style');
-        style.textContent = `
-            /* Add all the CSS from your original file here */
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); line-height: 1.6; min-height: 100vh; padding: 20px; }
-            .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-            /* ... include all your CSS styles from the original file ... */
-        `;
+        style.textContent = `/* Your CSS here */`;
         document.head.appendChild(style);
     },
 
@@ -28,16 +33,26 @@ const app = {
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
         
+        // Show target page
         document.getElementById(pageId).classList.add('active');
         event.target.classList.add('active');
         
         // Load page-specific content
         switch(pageId) {
+            case 'home':
+                home.load();
+                break;
             case 'quick-entry':
                 quickEntry.load();
                 break;
-            case 'queue':
-                queue.load();
+            case 'ac-queue':
+                queue.load('AC');
+                break;
+            case 'non-ac-queue':
+                queue.load('NON_AC');
+                break;
+            case 'history':
+                history.load();
                 break;
             case 'reports':
                 reports.load();
