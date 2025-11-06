@@ -278,108 +278,127 @@ const quickEntry = {
     },
 
     async saveTicket() {
-        try {
-            // Validate form
-            const fromStation = document.getElementById('from-station').value.trim();
-            const toStation = document.getElementById('to-station').value.trim();
-            const trainNumber = document.getElementById('train-number').value.trim();
-            const journeyClass = document.getElementById('class').value;
-            const journeyDate = document.getElementById('journey-date').value;
-            const boardingStation = document.getElementById('boarding-station').value.trim();
-            
-            if (!fromStation || !toStation || !trainNumber || !journeyClass || !journeyDate) {
-                app.showMessage('❌ Please fill all required fields', 'error');
-                return;
-            }
-
-            // Validate station codes
-            const fromStationData = this.stations.find(s => s.code === fromStation);
-            const toStationData = this.stations.find(s => s.code === toStation);
-            const boardingStationData = boardingStation ? this.stations.find(s => s.code === boardingStation) : null;
-
-            if (!fromStationData) {
-                app.showMessage(`❌ Invalid FROM station code: ${fromStation}`, 'error');
-                return;
-            }
-            if (!toStationData) {
-                app.showMessage(`❌ Invalid TO station code: ${toStation}`, 'error');
-                return;
-            }
-            if (boardingStation && !boardingStationData) {
-                app.showMessage(`❌ Invalid BOARDING station code: ${boardingStation}`, 'error');
-                return;
-            }
-
-            // Collect passengers
-            const passengerRows = document.querySelectorAll('.passenger-row');
-            const passengers = [];
-            
-            for (let i = 0; i < passengerRows.length; i++) {
-                const row = passengerRows[i];
-                const name = row.querySelector('.passenger-name').value.trim();
-                
-                if (name) {
-                    const passenger = {
-                        name: name,
-                        age: row.querySelector('.passenger-age').value || '',
-                        gender: row.querySelector('.passenger-gender').value || 'Male'
-                    };
-                    
-                    // Only first passenger has mobile
-                    if (i === 0) {
-                        const mobile = row.querySelector('.passenger-mobile').value.trim();
-                        if (!mobile) {
-                            app.showMessage('❌ Mobile number is required for the first passenger', 'error');
-                            return;
-                        }
-                        if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-                            app.showMessage('❌ Mobile number must be exactly 10 digits', 'error');
-                            return;
-                        }
-                        passenger.mobile = mobile;
-                    }
-                    
-                    passengers.push(passenger);
-                }
-            }
-
-            if (passengers.length === 0) {
-                app.showMessage('❌ Please add at least one passenger', 'error');
-                return;
-            }
-
-            // Prepare ticket data
-            const ticketData = {
-                username: app.currentUser.name,
-                from_station: fromStation,
-                to_station: toStation,
-                train_number: trainNumber,
-                class: journeyClass,
-                journey_date: journeyDate,
-                boarding_station: boardingStation || '',
-                remark: document.getElementById('remark').value.trim(),
-                passengers: passengers
-            };
-
-            // Save to backend
-            const response = await fetch(`${app.API_BASE}/api/tickets`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(ticketData)
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                app.showMessage(`✅ Ticket saved successfully!`, 'success');
-                this.resetForm();
-                this.loadLatestTickets(); // Refresh latest entries
-            } else {
-                app.showMessage('❌ Error saving ticket: ' + result.error, 'error');
-            }
-
-        } catch (error) {
-            app.showMessage('❌ Network error: ' + error.message, 'error');
+    try {
+        // Validate form
+        const fromStation = document.getElementById('from-station').value.trim();
+        const toStation = document.getElementById('to-station').value.trim();
+        const trainNumber = document.getElementById('train-number').value.trim();
+        const journeyClass = document.getElementById('class').value;
+        const journeyDate = document.getElementById('journey-date').value;
+        const boardingStation = document.getElementById('boarding-station').value.trim();
+        
+        if (!fromStation || !toStation || !trainNumber || !journeyClass || !journeyDate) {
+            app.showMessage('❌ Please fill all required fields', 'error');
+            return;
         }
+
+        // Validate station codes
+        const fromStationData = this.stations.find(s => s.code === fromStation);
+        const toStationData = this.stations.find(s => s.code === toStation);
+        const boardingStationData = boardingStation ? this.stations.find(s => s.code === boardingStation) : null;
+
+        if (!fromStationData) {
+            app.showMessage(`❌ Invalid FROM station code: ${fromStation}`, 'error');
+            return;
+        }
+        if (!toStationData) {
+            app.showMessage(`❌ Invalid TO station code: ${toStation}`, 'error');
+            return;
+        }
+        if (boardingStation && !boardingStationData) {
+            app.showMessage(`❌ Invalid BOARDING station code: ${boardingStation}`, 'error');
+            return;
+        }
+
+        // Collect passengers
+        const passengerRows = document.querySelectorAll('.passenger-row');
+        const passengers = [];
+        
+        for (let i = 0; i < passengerRows.length; i++) {
+            const row = passengerRows[i];
+            const name = row.querySelector('.passenger-name').value.trim();
+            
+            if (name) {
+                const passenger = {
+                    name: name,
+                    age: row.querySelector('.passenger-age').value || '',
+                    gender: row.querySelector('.passenger-gender').value || 'Male'
+                };
+                
+                // Only first passenger has mobile
+                if (i === 0) {
+                    const mobile = row.querySelector('.passenger-mobile').value.trim();
+                    if (!mobile) {
+                        app.showMessage('❌ Mobile number is required for the first passenger', 'error');
+                        return;
+                    }
+                    if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
+                        app.showMessage('❌ Mobile number must be exactly 10 digits', 'error');
+                        return;
+                    }
+                    passenger.mobile = mobile;
+                }
+                
+                passengers.push(passenger);
+            }
+        }
+
+        if (passengers.length === 0) {
+            app.showMessage('❌ Please add at least one passenger', 'error');
+            return;
+        }
+
+        // Prepare ticket data
+        const ticketData = {
+            username: app.currentUser.name,
+            from_station: fromStation,
+            to_station: toStation,
+            train_number: trainNumber,
+            class: journeyClass,
+            journey_date: journeyDate,
+            boarding_station: boardingStation || '',
+            remark: document.getElementById('remark').value.trim(),
+            passengers: passengers
+        };
+
+        console.log('📤 Saving ticket:', ticketData);
+
+        // Save to backend - FIXED: Added User-Name header
+        const response = await fetch(`${app.API_BASE}/api/tickets`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'User-Name': app.currentUser.name // ADD THIS HEADER
+            },
+            body: JSON.stringify(ticketData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Save response:', result);
+
+        if (result.success) {
+            app.showMessage(`✅ Ticket saved successfully! ID: ${result.ticketId}`, 'success');
+            this.resetForm();
+            this.loadLatestTickets(); // Refresh latest entries
+            
+            // Auto-refresh queues if they are open
+            if (document.getElementById('ac-queue').classList.contains('active')) {
+                queue.load('AC');
+            }
+            if (document.getElementById('non-ac-queue').classList.contains('active')) {
+                queue.load('NON_AC');
+            }
+        } else {
+            app.showMessage('❌ Error saving ticket: ' + result.error, 'error');
+        }
+
+    } catch (error) {
+        console.error('❌ Save ticket error:', error);
+        app.showMessage('❌ Network error: ' + error.message, 'error');
     }
+}
 };
