@@ -2,34 +2,46 @@
 let mockTickets = [
     {
         id: 'TKT1701234567',
-        from_station: 'Tirur',
-        to_station: 'Chennai',
+        from_station: 'CSTM',
+        to_station: 'KYN',
+        train_number: '12218',
+        boarding_station: '',
         passengers: 'John Doe (25/Male), Jane Doe (30/Female)',
         status: 'received',
         created: new Date().toISOString(),
-        class: 'Sleeper',
+        class: 'SL',
         journey_date: '2024-01-15',
         mobile: '9876543210',
-        train_type: 'Express',
         remark: 'Window seat preferred',
         created_by: 'Ziyad'
     }
 ];
 
 const ticketController = {
-    // Get all tickets with filtering
+    // Get all tickets with filtering by type (AC/NON_AC)
     async getTickets(req, res) {
         try {
-            const { filter } = req.query;
+            const { filter, type } = req.query;
             let filteredTickets = [...mockTickets];
 
-            // Apply filters
-            if (filter === 'MY' && req.headers['user-name']) {
+            // Apply AC/Non-AC filter
+            if (type === 'AC') {
                 filteredTickets = mockTickets.filter(ticket => 
+                    ['1A', '2A', '3A', 'CC', 'EC'].includes(ticket.class)
+                );
+            } else if (type === 'NON_AC') {
+                filteredTickets = mockTickets.filter(ticket => 
+                    ['SL', '2S'].includes(ticket.class)
+                );
+            }
+
+            // Apply user filter
+            if (filter === 'MY' && req.headers['user-name']) {
+                filteredTickets = filteredTickets.filter(ticket => 
                     ticket.created_by === req.headers['user-name']
                 );
             } else if (filter && filter !== 'ALL') {
-                filteredTickets = mockTickets.filter(ticket => 
+                filteredTickets = filteredTickets.filter(ticket => 
                     ticket.created_by === filter
                 );
             }
@@ -78,18 +90,19 @@ const ticketController = {
             
             const primaryMobile = ticketData.passengers[0]?.mobile || 'N/A';
             
-            // Create mock ticket
+            // Create new ticket
             const newTicket = {
                 id: ticketId,
                 from_station: ticketData.from_station,
                 to_station: ticketData.to_station,
+                train_number: ticketData.train_number,
+                boarding_station: ticketData.boarding_station || '',
                 passengers: passengerDetails,
                 status: 'received',
                 created: new Date().toISOString(),
                 class: ticketData.class,
                 journey_date: ticketData.journey_date,
                 mobile: primaryMobile,
-                train_type: ticketData.train_type || '',
                 remark: ticketData.remark || '',
                 created_by: ticketData.username
             };
