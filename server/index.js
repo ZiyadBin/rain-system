@@ -15,6 +15,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use('/api/tickets', require('./routes/tickets'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/booked', require('./routes/booked')); // ADD THIS LINE
 
 // Root route - API status
 app.get('/api', (req, res) => {
@@ -31,4 +32,5 @@ app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📱 Frontend: http://localhost:${PORT}`);
     console.log(`🔗 API: http://localhost:${PORT}/api`);
+    console.log(`💾 Using file-based database system`);
 });
