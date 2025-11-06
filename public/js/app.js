@@ -28,14 +28,26 @@ const app = {
         document.head.appendChild(style);
     },
 
-    showPage(pageId) {
+    // NOTE: Accept optional event parameter and safely determine the clicked nav button.
+    showPage(pageId, ev) {
         // Hide all pages
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
         
         // Show target page
-        document.getElementById(pageId).classList.add('active');
-        event.target.classList.add('active');
+        const pageEl = document.getElementById(pageId);
+        if (pageEl) pageEl.classList.add('active');
+
+        // Safely mark the nav button active.
+        // If the click event is passed, use its target. Otherwise, find the button whose onclick refers to the pageId.
+        let activeBtn = null;
+        if (ev && ev.target) {
+            activeBtn = ev.target;
+        } else {
+            // Fallback: find inline nav-button whose onclick contains the pageId string
+            activeBtn = document.querySelector(`.nav-button[onclick*="${pageId}"]`);
+        }
+        if (activeBtn) activeBtn.classList.add('active');
         
         // Load page-specific content
         switch(pageId) {
