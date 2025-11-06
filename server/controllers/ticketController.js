@@ -1,91 +1,39 @@
-// Mock database (in-memory storage for testing)
-let mockTickets = [
-    {
-        id: 'TKT1701234567',
-        from_station: 'CSTM',
-        to_station: 'KYN',
-        train_number: '12218',
-        boarding_station: '',
-        passengers: 'John Doe (25/Male), Jane Doe (30/Female)',
-        status: 'received',
-        created: new Date().toISOString(),
-        class: 'SL',
-        journey_date: '2024-01-15',
-        mobile: '9876543210',
-        remark: 'Window seat preferred',
-        created_by: 'Ziyad'
-    },
-    // ADD SAMPLE NON-AC TICKET
-    {
-        id: 'TKT1701234568',
-        from_station: 'PNVL',
-        to_station: 'NK',
-        train_number: '12134',
-        boarding_station: 'PNVL',
-        passengers: 'Raj Sharma (35/Male)',
-        status: 'received',
-        created: new Date().toISOString(),
-        class: 'SL',
-        journey_date: '2024-01-16',
-        mobile: '9876543211',
-        remark: 'Lower berth preferred',
-        created_by: 'Najad'
-    },
-    // ADD SAMPLE AC TICKET
-    {
-        id: 'TKT1701234569',
-        from_station: 'CSTM',
-        to_station: 'LTT',
-        train_number: '22222',
-        boarding_station: '',
-        passengers: 'Priya Patel (28/Female)',
-        status: 'received',
-        created: new Date().toISOString(),
-        class: '3A',
-        journey_date: '2024-01-17',
-        mobile: '9876543212',
-        remark: '',
-        created_by: 'Babu'
-    }
-];
+const db = require('../database/db');
 
 const ticketController = {
-    // Get all tickets with filtering by type (AC/NON_AC)
+    // Get all tickets with filtering
     async getTickets(req, res) {
         try {
             const { filter, type } = req.query;
-            let filteredTickets = [...mockTickets];
+            let tickets = db.read('tickets');
 
-            console.log('🔍 Filtering tickets:', { filter, type, totalTickets: mockTickets.length });
+            console.log('🔍 Filtering tickets:', { filter, type, totalTickets: tickets.length });
 
-            // Apply AC/Non-AC filter - FIXED LOGIC
+            // Apply AC/Non-AC filter
             if (type === 'AC') {
-                filteredTickets = mockTickets.filter(ticket => 
+                tickets = tickets.filter(ticket => 
                     ['1A', '2A', '3A', 'CC', 'EC'].includes(ticket.class)
                 );
-                console.log('✅ AC Tickets found:', filteredTickets.length);
             } else if (type === 'NON_AC') {
-                filteredTickets = mockTickets.filter(ticket => 
-                    ['SL', '2S', 'GEN'].includes(ticket.class)
+                tickets = tickets.filter(ticket => 
+                    ['SL', '2S'].includes(ticket.class)
                 );
-                console.log('✅ Non-AC Tickets found:', filteredTickets.length);
             }
 
             // Apply user filter
             if (filter === 'MY' && req.headers['user-name']) {
                 const userName = req.headers['user-name'];
-                filteredTickets = filteredTickets.filter(ticket => 
+                tickets = tickets.filter(ticket => 
                     ticket.created_by === userName
                 );
-                console.log('✅ My Tickets after filter:', filteredTickets.length);
             } else if (filter && filter !== 'ALL') {
-                filteredTickets = filteredTickets.filter(ticket => 
+                tickets = tickets.filter(ticket => 
                     ticket.created_by === filter
                 );
             }
 
             // Return tickets sorted by creation date (newest first)
-            const sortedTickets = filteredTickets.sort((a, b) => 
+            const sortedTickets = tickets.sort((a, b) => 
                 new Date(b.created) - new Date(a.created)
             );
 
@@ -102,7 +50,8 @@ const ticketController = {
     async getTicketById(req, res) {
         try {
             const ticketId = req.params.id;
-            const ticket = mockTickets.find(t => t.id === ticketId);
+            const tickets = db.read('tickets');
+            const ticket = tickets.find(t => t.id === ticketId);
             
             if (ticket) {
                 res.json(ticket);
@@ -146,17 +95,22 @@ const ticketController = {
                 created_by: ticketData.username
             };
 
-            // Add to mock database
-            mockTickets.push(newTicket);
+            // Save to database
+            const success = db.add('tickets', newTicket);
 
-            console.log('✅ Ticket saved:', newTicket);
-            console.log('📊 Total tickets now:', mockTickets.length);
+            if (success) {
+                console.log('✅ Ticket saved to database:', newTicket);
+                const tickets = db.read('tickets');
+                console.log('📊 Total tickets in DB:', tickets.length);
 
-            res.json({ 
-                success: true, 
-                ticketId: ticketId,
-                message: 'Ticket saved successfully'
-            });
+                res.json({ 
+                    success: true, 
+                    ticketId: ticketId,
+                    message: 'Ticket saved successfully'
+                });
+            } else {
+                throw new Error('Failed to save ticket to database');
+            }
 
         } catch (error) {
             console.error('❌ Error saving ticket:', error);
@@ -173,9 +127,9 @@ const ticketController = {
             const ticketId = req.params.id;
             const updates = req.body;
             
-            const ticketIndex = mockTickets.findIndex(t => t.id === ticketId);
-            if (ticketIndex !== -1) {
-                mockTickets[ticketIndex] = { ...mockTickets[ticketIndex], ...updates };
+            const success = db.update('tickets', ticketId, updates);
+            
+            if (success) {
                 res.json({ success: true, message: 'Ticket updated successfully' });
             } else {
                 res.status(404).json({ success: false, error: 'Ticket not found' });
@@ -189,12 +143,11 @@ const ticketController = {
     async deleteTicket(req, res) {
         try {
             const ticketId = req.params.id;
-            const ticketIndex = mockTickets.findIndex(t => t.id === ticketId);
+            const success = db.delete('tickets', ticketId);
             
-            if (ticketIndex !== -1) {
-                const deletedTicket = mockTickets.splice(ticketIndex, 1)[0];
-                console.log('🗑️ Ticket deleted:', deletedTicket.id);
-                console.log('📊 Remaining tickets:', mockTickets.length);
+            if (success) {
+                const tickets = db.read('tickets');
+                console.log('🗑️ Ticket deleted. Remaining:', tickets.length);
                 res.json({ success: true, message: 'Ticket deleted successfully' });
             } else {
                 res.status(404).json({ success: false, error: 'Ticket not found' });
