@@ -1,6 +1,7 @@
 // home.js - Home dashboard for unpaid tickets
 const home = {
     unpaidTickets: [],
+    currentFilter: 'MY', // FIXED: Track current filter
 
     load() {
         this.renderHome();
@@ -16,8 +17,8 @@ const home = {
                     <button class="refresh-btn" onclick="home.loadUnpaidTickets()">🔄 Refresh</button>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <strong>View:</strong>
-                        <button class="filter-btn active" onclick="home.filterUnpaid('MY')">My Unpaid</button>
-                        <button class="filter-btn" onclick="home.filterUnpaid('ALL')">All Unpaid</button>
+                        <button class="filter-btn ${this.currentFilter === 'MY' ? 'active' : ''}" onclick="home.filterUnpaid('MY')">My Unpaid</button>
+                        <button class="filter-btn ${this.currentFilter === 'ALL' ? 'active' : ''}" onclick="home.filterUnpaid('ALL')">All Unpaid</button>
                     </div>
                     <span id="unpaid-count" style="font-weight: bold; color: #dc3545;">Loading...</span>
                 </div>
@@ -31,8 +32,6 @@ const home = {
 
     async loadUnpaidTickets() {
         try {
-            // This would connect to your Google Sheets to get unpaid tickets
-            // For now, we'll simulate with mock data
             this.unpaidTickets = await this.fetchUnpaidFromSheets();
             this.displayUnpaidTickets();
             
@@ -43,8 +42,7 @@ const home = {
 
     async fetchUnpaidFromSheets() {
         // Simulate API call to Google Sheets
-        // In real implementation, this would call your Apps Script
-        return [
+        const allUnpaid = [
             {
                 pnr: '1234567890',
                 from: 'CSTM',
@@ -70,15 +68,41 @@ const home = {
                 mrp: 750,
                 paid: 300,
                 balance: 450
+            },
+            {
+                pnr: '1122334455',
+                from: 'CSTM',
+                to: 'LTT',
+                name: 'Mike Johnson',
+                mobile: '9876543212',
+                staff: 'Babu',
+                doj: '2024-01-27',
+                dob: '2024-01-22',
+                mrp: 600,
+                paid: 0,
+                balance: 600
             }
         ];
+
+        // FIXED: Filter by current user if 'MY' filter is selected
+        if (this.currentFilter === 'MY' && app.currentUser) {
+            return allUnpaid.filter(ticket => ticket.staff === app.currentUser.name);
+        }
+        
+        return allUnpaid;
     },
 
     displayUnpaidTickets() {
         const content = document.getElementById('unpaid-tickets-content');
         const count = document.getElementById('unpaid-count');
         
-        if (!this.unpaidTickets || this.unpaidTickets.length === 0) {
+        // FIXED: Apply current filter
+        let filteredTickets = this.unpaidTickets;
+        if (this.currentFilter === 'MY' && app.currentUser) {
+            filteredTickets = this.unpaidTickets.filter(ticket => ticket.staff === app.currentUser.name);
+        }
+
+        if (!filteredTickets || filteredTickets.length === 0) {
             content.innerHTML = '<div class="no-unpaid">🎉 No unpaid tickets found!</div>';
             count.textContent = '0 unpaid tickets';
             return;
@@ -86,7 +110,7 @@ const home = {
 
         // Group by staff
         const staffGroups = {};
-        this.unpaidTickets.forEach(ticket => {
+        filteredTickets.forEach(ticket => {
             if (!staffGroups[ticket.staff]) staffGroups[ticket.staff] = [];
             staffGroups[ticket.staff].push(ticket);
         });
@@ -140,17 +164,19 @@ const home = {
         });
 
         content.innerHTML = html;
-        count.textContent = `${this.unpaidTickets.length} unpaid tickets`;
+        count.textContent = `${filteredTickets.length} unpaid tickets`;
     },
 
     filterUnpaid(filter) {
-        // This would filter unpaid tickets by staff
+        this.currentFilter = filter;
+        
+        // Update button states
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
         });
         event.target.classList.add('active');
         
-        // For now, just reload all
+        // Reload with new filter
         this.loadUnpaidTickets();
     },
 
