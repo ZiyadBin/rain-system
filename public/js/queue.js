@@ -69,13 +69,19 @@ const queue = {
         } catch (error) {
             console.error('❌ Error loading tickets:', error);
             app.showMessage('❌ Error loading queue: ' + error.message, 'error');
-            document.getElementById('queue-content').innerHTML = '<p>Error loading tickets. Please try again.</p>';
+            const queueDiv = document.getElementById(this.currentQueueType === 'AC' ? 'ac-queue' : 'non-ac-queue');
+            const queueContent = queueDiv.querySelector('#queue-content');
+            if (queueContent) {
+                queueContent.innerHTML = '<p>Error loading tickets. Please try again.</p>';
+            }
         }
     },
 
     displayTickets(tickets) {
-        const queueContent = document.getElementById('queue-content');
-        
+        const queueDiv = document.getElementById(this.currentQueueType === 'AC' ? 'ac-queue' : 'non-ac-queue');
+        const queueContent = queueDiv.querySelector('#queue-content');
+        const queueCount = queueDiv.querySelector('#queue-count');
+
         if (!tickets || tickets.length === 0) {
             queueContent.innerHTML = `
                 <div style="text-align: center; padding: 40px; color: #666;">
@@ -84,7 +90,7 @@ const queue = {
                     <p>Try changing the filter or create a new ticket.</p>
                 </div>
             `;
-            document.getElementById('queue-count').textContent = '0 tickets';
+            queueCount.textContent = '0 tickets';
             return;
         }
         
@@ -185,7 +191,7 @@ const queue = {
         
         html += '</div>';
         queueContent.innerHTML = html;
-        document.getElementById('queue-count').textContent = `${tickets.length} tickets`;
+        queueCount.textContent = `${tickets.length} tickets`;
     },
 
     // FIXED: Added missing function
