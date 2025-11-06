@@ -22,8 +22,8 @@ const queue = {
                     <button class="refresh-btn" onclick="queue.loadTickets()">🔄 Refresh</button>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <strong>Filter:</strong>
-                        <button class="filter-btn active" onclick="queue.filterTickets('MY')">My Tickets</button>
-                        <button class="filter-btn" onclick="queue.filterTickets('ALL')">All Tickets</button>
+                        <button class="filter-btn ${app.currentFilter === 'MY' ? 'active' : ''}" onclick="queue.filterTickets('MY')">My Tickets</button>
+                        <button class="filter-btn ${app.currentFilter === 'ALL' ? 'active' : ''}" onclick="queue.filterTickets('ALL')">All Tickets</button>
                     </div>
                     <span id="queue-count" style="font-weight: bold; color: #555;">Loading...</span>
                 </div>
@@ -52,12 +52,18 @@ const queue = {
                     'User-Name': app.currentUser.name
                 }
             });
-            const tickets = await response.json();
             
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const tickets = await response.json();
             this.displayTickets(tickets);
             
         } catch (error) {
+            console.error('Error loading tickets:', error);
             app.showMessage('❌ Error loading queue: ' + error.message, 'error');
+            document.getElementById('queue-content').innerHTML = '<p>Error loading tickets. Please try again.</p>';
         }
     },
 
@@ -168,17 +174,7 @@ const queue = {
         document.getElementById('queue-count').textContent = `${tickets.length} tickets`;
     },
 
-    showPnrModal() {
-        if (this.selectedGroups.size === 0) return;
-        
-        if (this.selectedGroups.size === 1) {
-            const ticketId = Array.from(this.selectedGroups)[0];
-            this.showSinglePnrModal(ticketId);
-        } else {
-            app.showMessage('⚠️ Please select only one ticket to mark as booked', 'error');
-        }
-    },
-
+    // FIXED: Added missing function
     showSinglePnrModal(ticketId) {
         const modal = document.getElementById('pnrModal');
         modal.innerHTML = `
@@ -187,7 +183,7 @@ const queue = {
                 <p>Enter PNR number for this ticket:</p>
                 <div class="edit-form-group">
                     <label for="pnr-number">PNR Number *</label>
-                    <input type="text" id="pnr-number" placeholder="Enter 10-digit PNR" required>
+                    <input type="text" id="pnr-number" placeholder="Enter 10-digit PNR" maxlength="10" required>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="close-btn" onclick="queue.closePnrModal()">Cancel</button>
@@ -204,6 +200,20 @@ const queue = {
         });
     },
 
+    showPnrModal() {
+        if (this.selectedGroups.size === 0) {
+            app.showMessage('⚠️ Please select at least one ticket', 'error');
+            return;
+        }
+        
+        if (this.selectedGroups.size === 1) {
+            const ticketId = Array.from(this.selectedGroups)[0];
+            this.showSinglePnrModal(ticketId);
+        } else {
+            app.showMessage('⚠️ Please select only one ticket to mark as booked', 'error');
+        }
+    },
+
     closePnrModal() {
         document.getElementById('pnrModal').style.display = 'none';
     },
@@ -216,9 +226,17 @@ const queue = {
             return;
         }
 
+        if (pnrNumber.length !== 10) {
+            app.showMessage('❌ PNR must be exactly 10 digits', 'error');
+            return;
+        }
+
         try {
             // Get ticket details
             const ticketResponse = await fetch(`${app.API_BASE}/api/tickets/${ticketId}`);
+            if (!ticketResponse.ok) {
+                throw new Error('Failed to fetch ticket details');
+            }
             const ticket = await ticketResponse.json();
 
             // Prepare data for Google Sheets
@@ -231,31 +249,60 @@ const queue = {
                 remark: ticket.remark || '',
                 staff: ticket.created_by,
                 doj: ticket.journey_date,
-                dob: new Date().toLocaleDateString('en-IN')
+                dob: new Date().toLocaleDateString('en-IN'),
+                action: 'add_ticket' // Add this to identify the action
             };
 
-            // Send to Google Sheets
+            console.log('Sending to sheets:', sheetData);
+
+            // Send to Google Sheets - FIXED URL
             const sheetsResponse = await fetch('https://script.google.com/macros/s/AKfycbyrzgiU93qIgCb6GLyR5csoON35cL2tfZTsVl4zxuLYG4r5TyUFm-kpl1t1ag1NrElNCA/exec', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(sheetData)
             });
 
+            if (!sheetsResponse.ok) {
+                throw new Error(`Sheets API error: ${sheetsResponse.status}`);
+            }
+
             const result = await sheetsResponse.json();
+            console.log('Sheets response:', result);
 
             if (result.success) {
                 // Delete ticket from queue after successful sheet submission
-                await this.deleteTicket(ticketId);
+                await this.deleteTicketFromQueue(ticketId);
                 app.showMessage('✅ Ticket submitted to sheets and removed from queue!', 'success');
                 this.closePnrModal();
                 this.clearSelection();
                 this.loadTickets();
             } else {
-                app.showMessage('❌ Error submitting to sheets: ' + result.error, 'error');
+                app.showMessage('❌ Error submitting to sheets: ' + (result.error || 'Unknown error'), 'error');
             }
 
         } catch (error) {
+            console.error('Submit to sheets error:', error);
             app.showMessage('❌ Error: ' + error.message, 'error');
+        }
+    },
+
+    // FIXED: Added missing delete function
+    async deleteTicketFromQueue(ticketId) {
+        try {
+            const response = await fetch(`${app.API_BASE}/api/tickets/${ticketId}`, {
+                method: 'DELETE'
+            });
+            
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to delete ticket');
+            }
+            return result;
+        } catch (error) {
+            console.error('Error deleting ticket:', error);
+            throw error;
         }
     },
 
@@ -268,10 +315,12 @@ const queue = {
         
         // Update UI
         const groupElement = document.querySelector(`[data-ticket-id="${ticketId}"]`);
-        if (this.selectedGroups.has(ticketId)) {
-            groupElement.classList.add('selected');
-        } else {
-            groupElement.classList.remove('selected');
+        if (groupElement) {
+            if (this.selectedGroups.has(ticketId)) {
+                groupElement.classList.add('selected');
+            } else {
+                groupElement.classList.remove('selected');
+            }
         }
         
         // Show/hide bulk actions
@@ -294,7 +343,8 @@ const queue = {
         this.selectedGroups.clear();
         document.querySelectorAll('.passenger-group').forEach(group => {
             group.classList.remove('selected');
-            group.querySelector('.group-checkbox').checked = false;
+            const checkbox = group.querySelector('.group-checkbox');
+            if (checkbox) checkbox.checked = false;
         });
         this.toggleBulkActions();
     },
@@ -338,9 +388,7 @@ const queue = {
         
         if (confirm(`Delete ${this.selectedGroups.size} selected groups? This cannot be undone.`)) {
             const promises = Array.from(this.selectedGroups).map(ticketId => 
-                fetch(`${app.API_BASE}/api/tickets/${ticketId}`, {
-                    method: 'DELETE'
-                })
+                this.deleteTicketFromQueue(ticketId)
             );
             
             try {
@@ -538,26 +586,6 @@ const queue = {
             }
         } catch (error) {
             app.showMessage('❌ Error: ' + error.message, 'error');
-        }
-    },
-
-    async deleteTicket(ticketId) {
-        if (confirm('Are you sure you want to delete this ticket? This action cannot be undone.')) {
-            try {
-                const response = await fetch(`${app.API_BASE}/api/tickets/${ticketId}`, {
-                    method: 'DELETE'
-                });
-                
-                const result = await response.json();
-                if (result.success) {
-                    app.showMessage('✅ Ticket deleted successfully!', 'success');
-                    this.loadTickets();
-                } else {
-                    app.showMessage('❌ Error deleting ticket', 'error');
-                }
-            } catch (error) {
-                app.showMessage('❌ Error deleting ticket: ' + error.message, 'error');
-            }
         }
     },
 
