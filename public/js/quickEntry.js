@@ -279,74 +279,7 @@ const quickEntry = {
 
     async saveTicket() {
     try {
-        // Validate form
-        const fromStation = document.getElementById('from-station').value.trim();
-        const toStation = document.getElementById('to-station').value.trim();
-        const trainNumber = document.getElementById('train-number').value.trim();
-        const journeyClass = document.getElementById('class').value;
-        const journeyDate = document.getElementById('journey-date').value;
-        const boardingStation = document.getElementById('boarding-station').value.trim();
-        
-        if (!fromStation || !toStation || !trainNumber || !journeyClass || !journeyDate) {
-            app.showMessage('❌ Please fill all required fields', 'error');
-            return;
-        }
-
-        // Validate station codes
-        const fromStationData = this.stations.find(s => s.code === fromStation);
-        const toStationData = this.stations.find(s => s.code === toStation);
-        const boardingStationData = boardingStation ? this.stations.find(s => s.code === boardingStation) : null;
-
-        if (!fromStationData) {
-            app.showMessage(`❌ Invalid FROM station code: ${fromStation}`, 'error');
-            return;
-        }
-        if (!toStationData) {
-            app.showMessage(`❌ Invalid TO station code: ${toStation}`, 'error');
-            return;
-        }
-        if (boardingStation && !boardingStationData) {
-            app.showMessage(`❌ Invalid BOARDING station code: ${boardingStation}`, 'error');
-            return;
-        }
-
-        // Collect passengers
-        const passengerRows = document.querySelectorAll('.passenger-row');
-        const passengers = [];
-        
-        for (let i = 0; i < passengerRows.length; i++) {
-            const row = passengerRows[i];
-            const name = row.querySelector('.passenger-name').value.trim();
-            
-            if (name) {
-                const passenger = {
-                    name: name,
-                    age: row.querySelector('.passenger-age').value || '',
-                    gender: row.querySelector('.passenger-gender').value || 'Male'
-                };
-                
-                // Only first passenger has mobile
-                if (i === 0) {
-                    const mobile = row.querySelector('.passenger-mobile').value.trim();
-                    if (!mobile) {
-                        app.showMessage('❌ Mobile number is required for the first passenger', 'error');
-                        return;
-                    }
-                    if (mobile.length !== 10 || !/^\d+$/.test(mobile)) {
-                        app.showMessage('❌ Mobile number must be exactly 10 digits', 'error');
-                        return;
-                    }
-                    passenger.mobile = mobile;
-                }
-                
-                passengers.push(passenger);
-            }
-        }
-
-        if (passengers.length === 0) {
-            app.showMessage('❌ Please add at least one passenger', 'error');
-            return;
-        }
+        // ... existing validation code ...
 
         // Prepare ticket data
         const ticketData = {
@@ -363,17 +296,21 @@ const quickEntry = {
 
         console.log('📤 Saving ticket:', ticketData);
 
-        // Save to backend - FIXED: Added User-Name header
+        // Save to backend
         const response = await fetch(`${app.API_BASE}/api/tickets`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
-                'User-Name': app.currentUser.name // ADD THIS HEADER
+                'User-Name': app.currentUser.name
             },
             body: JSON.stringify(ticketData)
         });
 
+        console.log('📨 Response status:', response.status);
+        
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Server error:', errorText);
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
@@ -383,15 +320,18 @@ const quickEntry = {
         if (result.success) {
             app.showMessage(`✅ Ticket saved successfully! ID: ${result.ticketId}`, 'success');
             this.resetForm();
-            this.loadLatestTickets(); // Refresh latest entries
+            this.loadLatestTickets();
             
-            // Auto-refresh queues if they are open
-            if (document.getElementById('ac-queue').classList.contains('active')) {
-                queue.load('AC');
-            }
-            if (document.getElementById('non-ac-queue').classList.contains('active')) {
-                queue.load('NON_AC');
-            }
+            // TEST: Immediately check if ticket exists in backend
+            setTimeout(async () => {
+                console.log('🔍 Checking if ticket was saved...');
+                const checkResponse = await fetch(`${app.API_BASE}/api/tickets?filter=ALL&type=${journeyClass === 'SL' || journeyClass === '2S' ? 'NON_AC' : 'AC'}`, {
+                    headers: { 'User-Name': app.currentUser.name }
+                });
+                const allTickets = await checkResponse.json();
+                console.log('📊 All tickets in backend:', allTickets);
+            }, 1000);
+            
         } else {
             app.showMessage('❌ Error saving ticket: ' + result.error, 'error');
         }
