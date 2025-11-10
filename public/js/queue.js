@@ -123,13 +123,17 @@ const queue = {
             const trainTickets = trains[train];
             const totalPassengers = trainTickets.reduce((total, t) => total + t.passengers.split(',').length, 0);
             const trainColor = this.currentQueueType === 'AC' ? '#2196F3' : '#FF9800';
+            // === NEW ===
+            const trainBackground = this.currentQueueType === 'AC' ?
+                'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' : 
+                'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)';
 
             html += `
-                <div class="train-sticky-note" style="border-color: ${trainColor}">
+                <div class="train-sticky-note" style="border-color: ${trainColor}; background: ${trainBackground};">
                     <div class="train-header">
                         <strong>${train}</strong>
                         <span class="passenger-count" style="background-color: ${trainColor}">
-                            👥 ${totalPassengers} PAX • ${trainTickets.length} groups
+                            👥 ${totalPassengers} PAX • ${trainTickets.length} grps
                         </span>
                     </div>
                     <div class="groups-container">
