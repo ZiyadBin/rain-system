@@ -1,41 +1,39 @@
-// auth.js - JSON-based authentication
+// auth.js - Server-side authentication
 const auth = {
-    users: [],
-
-    async loadUsers() {
-        try {
-            const response = await fetch('data/users.json');
-            this.users = await response.json();
-        } catch (error) {
-            console.error('Error loading users:', error);
-            // Fallback to default users
-            this.users = [
-                { username: 'ziyad', password: 'ziyad123', name: 'Ziyad', role: 'admin' },
-                { username: 'najad', password: 'najad123', name: 'Najad', role: 'staff' },
-                { username: 'babu', password: 'babu123', name: 'Babu', role: 'staff' }
-            ];
-        }
-    },
-
+    
     async handleLogin() {
-        await this.loadUsers();
-        
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
-        
-        const user = this.users.find(u => u.username === username && u.password === password);
-        
-        if (user) {
-            app.currentUser = {
-                username: user.username,
-                name: user.name,
-                role: user.role
-            };
-            
-            this.showApp();
-            app.showMessage('🎉 Login successful!', 'success');
-        } else {
-            app.showMessage('❌ Invalid username or password', 'error');
+
+        if (!username || !password) {
+            app.showMessage('❌ Please enter username and password', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${app.API_BASE}/api/auth/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Set the current user from the server's response
+                app.currentUser = result.user;
+                
+                this.showApp();
+                app.showMessage('🎉 Login successful!', 'success');
+            } else {
+                app.showMessage(`❌ ${result.error || 'Invalid username or password'}`, 'error');
+            }
+
+        } catch (error) {
+            console.error('Login error:', error);
+            app.showMessage('❌ Network error during login. Please try again.', 'error');
         }
     },
 
@@ -43,9 +41,14 @@ const auth = {
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('app-section').style.display = 'block';
         this.updateUserDisplay();
+        
+        // Load the default home page after login
+        app.showPage('home'); 
     },
 
     updateUserDisplay() {
+        if (!app.currentUser) return;
+
         const now = new Date();
         const timeString = now.toLocaleTimeString('en-IN', { 
             hour: '2-digit', 
