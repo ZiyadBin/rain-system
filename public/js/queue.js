@@ -4,20 +4,18 @@ const queue = {
     selectedGroups: new Set(),
     currentQueueType: 'AC', // 'AC' or 'NON_AC'
 
-    // === CHANGED ===
-    // Made the load() function async to fix loading bug
+    // This is async to wait for the HTML to be built before loading tickets
     async load(queueType = 'AC') {
         this.currentQueueType = queueType;
 
-        // Wait for the HTML to be rendered first
+        // 1. Wait for the HTML to be rendered first
         await this.renderQueue(); 
         
-        // NOW it's safe to load the tickets into the HTML
+        // 2. NOW it's safe to load the tickets into the newly created HTML
         this.loadTickets(); 
     },
 
-    // === CHANGED ===
-    // Made renderQueue() async to wait for filters
+    // This is async to wait for the filter buttons to be built
     async renderQueue() {
         const queueDiv = document.getElementById(this.currentQueueType === 'AC' ? 'ac-queue' : 'non-ac-queue');
         const queueTitle = this.currentQueueType === 'AC' ? 'AC Queue' : 'Non-AC Queue';
@@ -49,11 +47,9 @@ const queue = {
         `;
 
         // Now that queueDiv.innerHTML is set, render the filter buttons *inside* it
-        // We await this to make sure it's done before load() finishes
         await this.renderFilterButtons();
     },
 
-    // === CHANGED ===
     // This function now builds all filters, including staff (Task 4)
     async renderFilterButtons() {
         // Find the container *inside the current queue*
@@ -69,11 +65,9 @@ const queue = {
         `;
 
         // === Task 4: Add Staff Filters ===
-        // Get the list of users
         const users = await auth.loadUsers(); 
         
         users.forEach(user => {
-            // Add a button for each user, but not for "My Tickets" (which is already covered)
             if (user.name !== app.currentUser.name) {
                 buttonsHtml += `
                     <button class="filter-btn ${app.currentFilter === user.name ? 'active' : ''}" onclick="queue.filterTickets('${user.name}', event)">${user.name}'s</button>
@@ -86,8 +80,6 @@ const queue = {
     },
 
     async loadTickets() {
-        // === CHANGED ===
-        // Moved element finding *inside* try block to prevent errors
         let queueDiv, queueContent, queueCount;
         try {
             // Find elements *inside the current queue*
@@ -95,34 +87,32 @@ const queue = {
             queueContent = queueDiv.querySelector('#queue-content');
             queueCount = queueDiv.querySelector('#queue-count');
 
+            if (!queueContent || !queueCount) {
+                 console.error("loadTickets: Could not find queue elements. This should not happen.");
+                 return;
+            }
+
             // Show loading message
             queueContent.innerHTML = '<p>Loading tickets...</p>';
             queueCount.textContent = 'Loading...';
 
-            console.log('🔄 Loading tickets for:', this.currentQueueType);
-            console.log('🔗 API URL:', `${app.API_BASE}/api/tickets?filter=${app.currentFilter}&type=${this.currentQueueType}`);
-
             const response = await fetch(`${app.API_BASE}/api/tickets?filter=${app.currentFilter}&type=${this.currentQueueType}`, {
                 headers: {
-                    'User-Name': app.currentUser.name // 'User-Name' header is used for 'MY' filter on backend
+                    'User-Name': app.currentUser.name
                 }
             });
-            
-            console.log('📡 Response status:', response.status);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const tickets = await response.json();
-            console.log('✅ Tickets loaded:', tickets.length);
             this.displayTickets(tickets);
             
         } catch (error) {
             console.error('❌ Error loading tickets:', error);
             app.showMessage('❌ Error loading queue: ' + error.message, 'error');
             
-            // Safety check: only update HTML if elements were found
             if (queueContent) {
                 queueContent.innerHTML = '<p>Error loading tickets. Please try again.</p>';
             }
@@ -130,8 +120,6 @@ const queue = {
     },
 
     displayTickets(tickets) {
-        // === CHANGED ===
-        // Moved element finding here for safety
         const queueDiv = document.getElementById(this.currentQueueType === 'AC' ? 'ac-queue' : 'non-ac-queue');
         const queueContent = queueDiv.querySelector('#queue-content');
         const queueCount = queueDiv.querySelector('#queue-count');
@@ -152,8 +140,6 @@ const queue = {
             queueCount.textContent = '0 tickets';
             return;
         }
-        
-        console.log('🎫 Displaying tickets:', tickets.length);
         
         // Group by train number/name
         const trains = {};
@@ -254,14 +240,30 @@ const queue = {
     },
 
     showSinglePnrModal(ticketId) {
-        // ... (This function is unchanged)
         const modal = document.getElementById('pnrModal');
-        modal.innerHTML = `...`;
+        modal.innerHTML = `
+            <div class="edit-modal-content">
+                <h3>🎫 Mark as Booked</h3>
+                <p>Enter PNR number for this ticket:</p>
+                <div class="edit-form-group">
+                    <label for="pnr-number">PNR Number *</label>
+                    <input type="text" id="pnr-number" placeholder="Enter 10-digit PNR" maxlength="10" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="close-btn" onclick="queue.closePnrModal()">Cancel</button>
+                    <button type="button" class="save-btn" onclick="queue.markAsBooked('${ticketId}')">✅ Mark as Booked</button>
+                </div>
+            </div>
+        `;
         modal.style.display = 'flex';
-        modal.addEventListener('click', ...);
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closePnrModal();
+            }
+        });
     },
-    // (Omitted unchanged functions for brevity: showPnrModal, closePnrModal, markAsBooked, deleteTicketFromQueue)
-    // ...
+
     showPnrModal() {
         if (this.selectedGroups.size === 0) {
             app.showMessage('⚠️ Please select at least one ticket', 'error');
@@ -336,8 +338,7 @@ const queue = {
         }
     },
 
-    // === CHANGED ===
-    // This function is now correct (Task 3)
+    // This function is correct (Task 3)
     toggleGroupSelection(ticketId) {
         if (this.selectedGroups.has(ticketId)) {
             this.selectedGroups.delete(ticketId);
@@ -345,7 +346,6 @@ const queue = {
             this.selectedGroups.add(ticketId);
         }
         
-        // Find the group element *inside the current queue*
         const queueDiv = document.getElementById(this.currentQueueType === 'AC' ? 'ac-queue' : 'non-ac-queue');
         const groupElement = queueDiv.querySelector(`[data-ticket-id="${ticketId}"]`);
         
@@ -357,14 +357,11 @@ const queue = {
             }
         }
         
-        // Show/hide bulk actions
         this.toggleBulkActions();
     },
 
-    // === CHANGED ===
-    // This function is now correct (Task 3)
+    // This function is correct (Task 3)
     toggleBulkActions() {
-        // Find the container *inside the current queue*
         const queueDiv = document.getElementById(this.currentQueueType === 'AC' ? 'ac-queue' : 'non-ac-queue');
         const bulkActions = queueDiv.querySelector('#bulk-actions');
         const selectedCount = queueDiv.querySelector('#selected-count');
@@ -375,21 +372,17 @@ const queue = {
         }
         
         if (this.selectedGroups.size > 0) {
-            bulkActions.style.display = 'flex'; // Show the bar
+            bulkActions.style.display = 'flex';
             selectedCount.textContent = this.selectedGroups.size;
         } else {
-            bulkActions.style.display = 'none'; // Hide the bar
+            bulkActions.style.display = 'none';
         }
     },
 
-    // === CHANGED ===
-    // This function is now correct (Task 3)
+    // This function is correct (Task 3)
     clearSelection() {
         this.selectedGroups.clear();
-
-        // Find the container *inside the current queue*
         const queueDiv = document.getElementById(this.currentQueueType === 'AC' ? 'ac-queue' : 'non-ac-queue');
-
         queueDiv.querySelectorAll('.passenger-group').forEach(group => {
             group.classList.remove('selected');
             const checkbox = group.querySelector('.group-checkbox');
@@ -428,14 +421,11 @@ const queue = {
         }
     },
 
-    // === CHANGED ===
-    // This function now uses the new auth.loadUsers()
+    // This function is correct (uses auth.loadUsers)
     async showBulkAssignModal() {
         if (this.selectedGroups.size === 0) return;
         
-        // Load users for assignment
-        const users = await auth.loadUsers(); // Use new async function
-        
+        const users = await auth.loadUsers();
         const staffMembers = users.filter(user => user.username !== app.currentUser.username);
         
         const staffList = staffMembers.map(staff => 
@@ -467,7 +457,6 @@ const queue = {
     },
 
     async bulkAssignToStaff(staffName) {
-        // ... (This function is unchanged)
         const promises = Array.from(this.selectedGroups).map(ticketId => 
             fetch(`${app.API_BASE}/api/tickets/${ticketId}`, {
                 method: 'PUT',
@@ -487,28 +476,23 @@ const queue = {
         }
     },
 
-    // === CHANGED ===
-    // This function is now correct (Task 3)
+    // This function is correct (Task 3)
     filterTickets(filter, event) {
         app.currentFilter = filter;
         this.loadTickets();
         
-        // Find the container *inside the current queue*
         const queueDiv = document.getElementById(this.currentQueueType === 'AC' ? 'ac-queue' : 'non-ac-queue');
         
-        // Remove 'active' from all buttons in this queue
         queueDiv.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
         });
 
-        // Add 'active' to the one that was clicked
         if (event && event.target) {
             event.target.classList.add('active');
         }
     },
 
     async editTicket(ticketId) {
-        // ... (This function is unchanged)
         try {
             const response = await fetch(`${app.API_BASE}/api/tickets/${ticketId}`);
             const ticket = await response.json();
@@ -522,16 +506,7 @@ const queue = {
     },
 
     renderEditModal(ticket) {
-        // ... (This function is unchanged)
         const modal = document.getElementById('editModal');
-        modal.innerHTML = `
-            <div class="edit-modal-content">
-                <h3>Edit Ticket</h3>
-                <form id="editForm">
-                    </form>
-            </div>
-        `;
-        // (full form innerHTML)
         modal.innerHTML = `
             <div class="edit-modal-content">
                 <h3>Edit Ticket</h3>
@@ -630,7 +605,6 @@ const queue = {
     },
 
     formatPassengersDisplay(passengersString) {
-        // ... (This function is unchanged)
         const passengers = passengersString.split(',').map(p => p.trim());
         return passengers.map(passenger => {
             const nameMatch = passenger.match(/^([^(]+)/);
