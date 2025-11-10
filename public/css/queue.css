@@ -1,9 +1,9 @@
 /* ===== QUEUE LAYOUTS ===== */
 .trains-grid {
     display: grid;
-    /* === CHANGED === (minmax(250px -> 230px) to fit 5 cards) */
-    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-    gap: 15px; /* Reduced gap */
+    /* === CHANGED === (Made more aggressive to fit 5) */
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px; /* Further reduced gap */
     margin-top: 20px;
 }
 
