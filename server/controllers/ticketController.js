@@ -7,12 +7,10 @@ function findDuplicates(newTicket) {
     const allBooked = db.read('booked_tickets');
 
     // Check 1: Mobile Number (High Confidence)
-    // Check pending tickets
     let mobileMatch = allTickets.find(t => t.mobile === newTicket.mobile);
     if (mobileMatch) {
         return { isDuplicate: true, matchType: 'Mobile (Pending)', matchId: mobileMatch.id };
     }
-    // Check booked history (we need to match the 'mobile' field)
     mobileMatch = allBooked.find(b => b.mobile === newTicket.mobile);
     if (mobileMatch) {
         return { isDuplicate: true, matchType: 'Mobile (Booked)', matchId: mobileMatch.id };
@@ -21,7 +19,6 @@ function findDuplicates(newTicket) {
     // Check 2: Name + Route + Date (Medium Confidence)
     const newName = newTicket.passengers.split(',')[0].split(' (')[0].toLowerCase();
     
-    // Check pending tickets
     let detailsMatch = allTickets.find(t => 
         t.from_station === newTicket.from_station &&
         t.to_station === newTicket.to_station &&
@@ -32,10 +29,9 @@ function findDuplicates(newTicket) {
         return { isDuplicate: true, matchType: 'Details (Pending)', matchId: detailsMatch.id };
     }
 
-    // Check booked history
     detailsMatch = allBooked.find(b => 
-        b.from === newTicket.from_station &&
-        b.to === newTicket.to_station &&
+        b.from === newTicket.from_station && // Note: booked_tickets has 'from'
+        b.to === newTicket.to_station &&   // Note: booked_tickets has 'to'
         b.journey_date === newTicket.journey_date &&
         b.name.toLowerCase() === newName
     );
@@ -56,44 +52,28 @@ const ticketController = {
 
             console.log('🔍 Filtering tickets:', { filter, type, totalTickets: tickets.length });
 
-            // Apply AC/Non-AC filter
             if (type === 'AC') {
-                tickets = tickets.filter(ticket => 
-                    ['1A', '2A', '3A', 'CC', 'EC'].includes(ticket.class)
-                );
+                tickets = tickets.filter(t => ['1A', '2A', '3A', 'CC', 'EC'].includes(t.class));
             } else if (type === 'NON_AC') {
-                tickets = tickets.filter(ticket => 
-                    ['SL', '2S'].includes(ticket.class)
-                );
+                tickets = tickets.filter(t => ['SL', '2S'].includes(t.class));
             }
 
-            // Apply user filter
             if (filter === 'MY' && req.headers['user-name']) {
                 const userName = req.headers['user-name'];
-                tickets = tickets.filter(ticket => 
-                    ticket.created_by === userName
-                );
+                tickets = tickets.filter(t => t.created_by === userName);
             } else if (filter && filter !== 'ALL') {
-                tickets = tickets.filter(ticket => 
-                    ticket.created_by === filter
-                );
+                tickets = tickets.filter(t => t.created_by === filter);
             }
 
-            // === CHANGED ===
-            // By default, filter *out* the duplicates from the main queue
+            // Filter *out* the duplicates from the main queue
             if (!req.query.includeDuplicates) {
                  tickets = tickets.filter(ticket => !ticket.duplicate_flag);
             }
 
-            const sortedTickets = tickets.sort((a, b) => 
-                new Date(b.created) - new Date(a.created)
-            );
-
-            console.log('📤 Sending tickets:', sortedTickets.length);
+            const sortedTickets = tickets.sort((a, b) => new Date(b.created) - new Date(a.created));
             res.json(sortedTickets);
 
         } catch (error) {
-            console.error('❌ Error getting tickets:', error);
             res.status(500).json({ error: error.message });
         }
     },
@@ -121,12 +101,10 @@ const ticketController = {
 
     // Get single ticket by ID
     async getTicketById(req, res) {
-        // (This function is unchanged)
         try {
             const ticketId = req.params.id;
             const tickets = db.read('tickets');
             const ticket = tickets.find(t => t.id === ticketId);
-            
             if (ticket) {
                 res.json(ticket);
             } else {
@@ -164,8 +142,8 @@ const ticketController = {
                 mobile: primaryMobile,
                 remark: ticketData.remark || '',
                 created_by: ticketData.username,
-                duplicate_flag: false, // Default
-                duplicate_details: {}  // Default
+                duplicate_flag: false,
+                duplicate_details: {}
             };
             
             // === NEW DUPLICATE CHECK ===
@@ -180,11 +158,9 @@ const ticketController = {
             }
             // === END DUPLICATE CHECK ===
 
-            // Save to database
             const success = db.add('tickets', newTicket);
 
             if (success) {
-                console.log('✅ Ticket saved to database:', newTicket);
                 res.json({ 
                     success: true, 
                     ticketId: ticketId,
@@ -196,7 +172,6 @@ const ticketController = {
             }
 
         } catch (error) {
-            console.error('❌ Error saving ticket:', error);
             res.status(500).json({ 
                 success: false, 
                 error: error.message 
@@ -204,15 +179,12 @@ const ticketController = {
         }
     },
 
-    // Update ticket
+    // (updateTicket is unchanged)
     async updateTicket(req, res) {
-        // (This function is unchanged)
         try {
             const ticketId = req.params.id;
             const updates = req.body;
-            
             const success = db.update('tickets', ticketId, updates);
-            
             if (success) {
                 res.json({ success: true, message: 'Ticket updated successfully' });
             } else {
@@ -223,15 +195,12 @@ const ticketController = {
         }
     },
 
-    // Delete ticket
+    // (deleteTicket is unchanged)
     async deleteTicket(req, res) {
-        // (This function is unchanged)
         try {
             const ticketId = req.params.id;
             const success = db.delete('tickets', ticketId);
-            
             if (success) {
-                console.log('🗑️ Ticket deleted.');
                 res.json({ success: true, message: 'Ticket deleted successfully' });
             } else {
                 res.status(404).json({ success: false, error: 'Ticket not found' });
