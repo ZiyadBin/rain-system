@@ -174,7 +174,9 @@ const quickEntry = {
     // (loadLatestTickets and renderLatestTickets are unchanged)
     async loadLatestTickets() {
         try {
-            const response = await fetch(`${app.API_BASE}/api/tickets?filter=MY&limit=5`, { headers: { 'User-Name': app.currentUser.name } });
+            const response = await fetch(`${app.API_BASE}/api/tickets?filter=MY&limit=3`, {
+                headers: { 'User-Name': app.currentUser.name }
+            });
             this.latestTickets = await response.json();
             this.renderLatestTickets();
         } catch (error) {
