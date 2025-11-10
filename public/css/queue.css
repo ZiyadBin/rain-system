@@ -1,25 +1,19 @@
 /* ===== QUEUE LAYOUTS ===== */
 .trains-grid {
     display: grid;
-    /* === CHANGED === (Reduced min-width to 250px to fit more cards) */
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
+    /* === CHANGED === (minmax(250px -> 230px) to fit 5 cards) */
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 15px; /* Reduced gap */
     margin-top: 20px;
 }
 
 .train-sticky-note {
     border: 2px solid;
     border-radius: 10px;
-    padding: 15px 20px;
+    padding: 15px; /* Reduced padding */
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     min-height: 200px;
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-    border-color: #2196F3;
-}
-
-#non-ac-queue .train-sticky-note {
-    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
-    border-color: #FF9800;
+    /* Removed fixed background gradient, color set in JS */
 }
 
 .train-header {
@@ -37,7 +31,7 @@
 }
 
 .passenger-count {
-    background: #4caf50;
+    /* background: #4caf50; */ /* Set in JS */
     color: white;
     padding: 4px 10px;
     border-radius: 15px;
@@ -51,31 +45,56 @@
     gap: 10px;
 }
 
-.passenger-group {
+/* === NEW COMPACT CARD STYLES === */
+.passenger-group-v2 {
     background: rgba(255,255,255,0.9);
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    padding: 12px;
     transition: all 0.3s ease;
     cursor: pointer;
+    position: relative; /* For the rotated text */
+    overflow: hidden; /* For the rotated text */
+    padding: 10px;
+    padding-right: 30px; /* Space for the rotated text */
 }
 
-.passenger-group:hover {
+.passenger-group-v2:hover {
     border-color: #2196F3;
     transform: translateY(-1px);
 }
 
-.passenger-group.selected {
+.passenger-group-v2.selected {
     border: 2px solid #2196F3;
     background: rgba(33, 150, 243, 0.08);
     box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
 }
 
-.group-header {
+/* Rotated "Created By" text */
+.group-created-by {
+    position: absolute;
+    right: -55px; /* Adjust as needed */
+    bottom: 60px; /* Adjust as needed */
+    transform: rotate(-90deg);
+    transform-origin: bottom right;
+    font-size: 9px;
+    color: #888;
+    background: #f0f0f0;
+    padding: 2px 5px;
+    border-radius: 3px 3px 0 0;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+
+.group-main-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.group-header-v2 {
     display: flex;
     align-items: flex-start;
     gap: 10px;
-    margin-bottom: 8px;
 }
 
 .group-selector {
@@ -104,23 +123,17 @@
     font-weight: bold;
 }
 
-.group-main-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.group-basic-info {
+.group-basic-info-v2 {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 4px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-start;
 }
 
 .group-passenger-count {
     font-weight: bold;
     color: #333;
-    font-size: 12px;
+    font-size: 11px;
     background: #e8f5e8;
     padding: 2px 6px;
     border-radius: 3px;
@@ -142,33 +155,19 @@
     font-size: 10px;
     color: #495057;
     border: 1px solid #dee2e6;
+    font-weight: bold;
 }
 
-.group-meta {
+.group-meta-v2 {
     font-size: 10px;
     color: #666;
     display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-}
-
-.group-details-compact {
-    margin-top: 8px;
-}
-
-.contact-info-compact,
-.boarding-info {
-    font-size: 11px;
-    margin-bottom: 6px;
-    padding: 4px 6px;
+    flex-direction: column; /* Stacked */
+    gap: 4px;
     background: #f0f8ff;
+    padding: 5px;
     border-radius: 3px;
     border-left: 2px solid #2196F3;
-}
-
-.boarding-info {
-    background: #e8f5e8;
-    border-left-color: #4caf50;
 }
 
 .passengers-list-compact {
@@ -207,8 +206,10 @@
     border-left: 2px solid #ffc107;
     margin-top: 4px;
 }
+/* === END NEW CARD STYLES === */
 
-/* Enhanced Bulk Actions */
+
+/* Bulk Actions */
 .bulk-actions {
     background: #e3f2fd;
     padding: 15px;
@@ -281,6 +282,14 @@
     background: #f57c00;
 }
 
+@media (max-width: 1400px) {
+    .trains-grid {
+        /* Go to 4 columns on medium-large screens */
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+}
+
+
 @media (max-width: 900px) {
     .trains-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -298,26 +307,20 @@
         grid-template-columns: 1fr;
     }
     
-    .group-header {
-        flex-direction: column;
-        gap: 8px;
-    }
-    
     .passenger-item-compact {
         flex-direction: column;
         align-items: flex-start;
         gap: 2px;
     }
 }
-/* === DUPLICATES PAGE STYLES === */
 
+/* === DUPLICATES PAGE STYLES === */
 .nav-button.duplicates-nav {
     background: #f44336;
 }
 .nav-button.duplicates-nav.active {
     background: linear-gradient(135deg, #f44336, #d32f2f);
 }
-
 #duplicates-count-badge {
     background: #fff;
     color: #f44336;
@@ -325,15 +328,13 @@
     border-radius: 10px;
     font-size: 11px;
     font-weight: bold;
-    display: none; /* Hidden by default */
+    display: none;
     margin-left: 5px;
 }
-
 .duplicate-ticket {
     background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
     border-color: #f44336;
 }
-
 .duplicate-info {
     background: #f8d7da;
     color: #721c24;
@@ -344,13 +345,11 @@
     margin-top: 10px;
     font-weight: bold;
 }
-
 .duplicate-actions {
     display: flex;
     gap: 10px;
     margin-top: 15px;
 }
-
 .duplicate-actions .action-btn-small {
-    flex: 1; /* Make buttons fill space */
+    flex: 1;
 }
