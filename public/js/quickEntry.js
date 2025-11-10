@@ -20,8 +20,6 @@ const quickEntry = {
         }
     },
 
-    // === CHANGED ===
-    // Updated passenger row layout to: Name | Age | Mobile | Gender
     renderForm() {
         const quickEntryDiv = document.getElementById('quick-entry');
         quickEntryDiv.innerHTML = `
@@ -108,7 +106,8 @@ const quickEntry = {
                     <div class="side-panel">
                         <div class="parser-section">
                             <h3>Smart Paste</h3>
-                            <textarea id="qe-parser-input" rows="8" placeholder="Paste customer details here..."></textarea>
+                            <textarea id="qe-parser-input" rows="8" 
+                                      placeholder="FROM TO Train NO/Type&#10;NAme AGE M/F&#10;Number"></textarea>
                             <button onclick="quickEntry.parseText()" style="width: 100%; margin: 10px 0 0 0;">
                                 ⚡ Parse & Fill Form
                             </button>
@@ -199,8 +198,7 @@ const quickEntry = {
         container.innerHTML = html;
     },
 
-    // === CHANGED ===
-    // Updated companion layout to Name | Age | Gender
+    // (addPassenger is unchanged)
     addPassenger() {
         const passengersList = document.getElementById('passengers-list');
         const newRow = document.createElement('div');
@@ -223,9 +221,8 @@ const quickEntry = {
         document.getElementById('journey-date').value = tomorrow.toISOString().split('T')[0];
     },
 
-    // === CHANGED ===
-    // Updated to match new passenger row layout
-    resetForm(confirmReset = true) { // Added a flag to skip confirm
+    // (resetForm is unchanged)
+    resetForm(confirmReset = true) {
         if (confirmReset && !confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
             return;
         }
@@ -259,8 +256,7 @@ const quickEntry = {
         }
     },
 
-    // === CHANGED ===
-    // Updated to find mobile number in its new position
+    // (saveTicket is unchanged)
     async saveTicket() {
         try {
             const fromStation = document.getElementById('from-station').value.trim().toUpperCase();
@@ -323,7 +319,6 @@ const quickEntry = {
                 passengers: passengers
             };
 
-            // ... (rest of the save logic is unchanged)
             const response = await fetch(`${app.API_BASE}/api/tickets`, {
                 method: 'POST',
                 headers: { 
@@ -351,8 +346,7 @@ const quickEntry = {
         }
     },
     
-    // === CHANGED ===
-    // Updated parser logic to fix "Sajna" bug and handle defaults
+    // (parseText is unchanged)
     parseText() {
         const text = document.getElementById('qe-parser-input').value;
         if (!text.trim()) {
@@ -360,7 +354,6 @@ const quickEntry = {
             return;
         }
 
-        // 1. Clear the form (WITHOUT confirmation)
         this.resetForm(false); 
         
         let lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
@@ -368,7 +361,6 @@ const quickEntry = {
         let primaryMobile = '';
         let defaultGender = 'Male';
         
-        // 2. Global Hints (Gender, Class, Mobile)
         const classRegex = /\b(1A|2A|3A|CC|EC|SL|2S)\b/i;
         const acRegex = /\b(AC)\b/i;
         const mobileRegex = /\b(\d{10})\b/;
@@ -389,7 +381,6 @@ const quickEntry = {
         }
         document.getElementById('class').value = classFound;
         
-        // Find and remove mobile number from lines
         for (let i = 0; i < lines.length; i++) {
             const mobileMatch = lines[i].match(mobileRegex);
             if (mobileMatch && !primaryMobile) {
@@ -399,7 +390,6 @@ const quickEntry = {
             }
         }
 
-        // 3. First Line (Route & Train)
         const firstLine = lines.shift() || '';
         let trainPart = firstLine;
         let foundStations = [];
@@ -417,14 +407,13 @@ const quickEntry = {
             document.getElementById('from-station').value = foundStations[0];
             document.getElementById('boarding-station').value = foundStations[1];
             document.getElementById('to-station').value = foundStations[2];
-        } else if (foundStations.length >= 2) { // Get first and second
+        } else if (foundStations.length >= 2) {
             document.getElementById('from-station').value = foundStations[0];
             document.getElementById('to-station').value = foundStations[1];
         }
         
         document.getElementById('train-number').value = trainPart.trim();
         
-        // 4. Passengers
         passengerLines = lines;
         const passengersList = document.getElementById('passengers-list');
         const firstPassengerRow = passengersList.querySelector('.passenger-row');
@@ -432,15 +421,12 @@ const quickEntry = {
         for (let i = 0; i < passengerLines.length; i++) {
             let line = passengerLines[i];
             
-            // === FIX for "Sajna" bug ===
-            // Remove global hints from the line itself *before* parsing
             line = line.replace(femaleHintRegex, '').trim();
 
             let gender = defaultGender;
             let age = '';
             let name = '';
 
-            // Parse Right-to-Left
             const genderMatch = line.match(/\b([MF])\b$/i);
             if (genderMatch) {
                 gender = genderMatch[1].toUpperCase() === 'M' ? 'Male' : 'Female';
@@ -464,13 +450,11 @@ const quickEntry = {
                 currentRow = passengersList.lastChild;
             }
             
-            // Fill the row
             currentRow.querySelector('.passenger-name').value = name;
             currentRow.querySelector('.passenger-age').value = age;
             currentRow.querySelector('.passenger-gender').value = gender;
             
             if (i === 0) {
-                // Find mobile input (now in 3rd column)
                 currentRow.querySelector('.passenger-mobile').value = primaryMobile;
             }
         }
