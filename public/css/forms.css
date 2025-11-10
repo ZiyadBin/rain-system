@@ -106,7 +106,6 @@ button:disabled {
     align-items: center;
     justify-content: center;
 }
-
 .edit-modal-content {
     background: white;
     padding: 30px;
@@ -116,17 +115,8 @@ button:disabled {
     max-height: 80vh;
     overflow-y: auto;
 }
-
-.edit-form-group {
-    margin-bottom: 15px;
-}
-
-.edit-form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
+.edit-form-group { margin-bottom: 15px; }
+.edit-form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
 .edit-form-group input,
 .edit-form-group select,
 .edit-form-group textarea {
@@ -135,20 +125,10 @@ button:disabled {
     border: 1px solid #ddd;
     border-radius: 5px;
 }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.close-btn { background: #6c757d; }
+.save-btn { background: #28a745; }
 
-.modal-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.close-btn {
-    background: #6c757d;
-}
-
-.save-btn {
-    background: #28a745;
-}
 
 /* Quick Entry */
 .quick-entry-layout {
@@ -166,15 +146,12 @@ button:disabled {
 }
 
 /* === CHANGED === */
-/* This panel is now a 2-col grid */
 .side-panel {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     align-items: start;
 }
-/* === NEW === */
-/* Wrapper for Parser + Latest */
 .side-panel-col {
     display: flex;
     flex-direction: column;
@@ -188,10 +165,7 @@ button:disabled {
     gap: 10px;
     margin-top: 20px;
 }
-
-.form-actions button {
-    flex: 1;
-}
+.form-actions button { flex: 1; }
 
 /* Parser Styles */
 .parser-section {
@@ -200,13 +174,11 @@ button:disabled {
     border-radius: 10px;
     border: 2px solid #ffd54f;
 }
-
 .parser-section h3 {
     color: #f57c00;
     margin-bottom: 15px;
     text-align: center;
 }
-
 #qe-parser-input {
     width: 100%;
     padding: 12px;
@@ -217,10 +189,7 @@ button:disabled {
     resize: vertical;
     background: #fffdf6;
 }
-
-#qe-parser-input:focus {
-    border-color: #ff9800;
-}
+#qe-parser-input:focus { border-color: #ff9800; }
 
 /* === NEW NOTEPAD STYLES === */
 .notepad-section {
@@ -228,43 +197,42 @@ button:disabled {
     padding: 20px;
     border-radius: 10px;
     border: 2px solid #dee2e6;
+    height: 100%; /* Fill the column */
+    display: flex;
+    flex-direction: column;
 }
-
 .notepad-section h3 {
     color: #6c757d;
     margin-bottom: 15px;
     text-align: center;
 }
-
 #qe-notepad {
     width: 100%;
-    /* You can adjust this height */
-    height: 400px;
+    flex-grow: 1; /* Fill available space */
     border: 2px solid #dee2e6;
     border-radius: 8px;
     font-size: 13px;
     font-family: monospace;
     resize: vertical;
     background: #fff;
+    min-height: 200px;
 }
-
-#qe-notepad:focus {
-    border-color: #6c757d;
-}
+#qe-notepad:focus { border-color: #6c757d; }
 /* === END NOTEPAD STYLES === */
 
 
-/* === CHANGED === (Name smaller, Age wider) */
+/* === CHANGED PASSENGER ROW STYLES === */
 .passenger-row {
-    /* Layout for: Name | Age | Gender */
-    grid-template-columns: 2fr 1.2fr 1fr;
+    display: grid;
+    grid-template-columns: 2.5fr 1.2fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: end;
 }
-
 .passenger-row:first-child {
-    /* Layout for: Name | Age | Mobile | Gender */
     grid-template-columns: 1.5fr 1.2fr 1.5fr 1fr;
 }
-/* === END CHANGE === */
+/* === END CHANGED STYLES === */
 
 .passenger-mobile {
     background: #f0f8ff;
@@ -279,7 +247,6 @@ button:disabled {
     font-weight: bold;
     letter-spacing: 1px;
 }
-
 .form-group label[for*="station"]::after {
     content: " (3-4 letter code)";
     font-size: 12px;
@@ -301,25 +268,15 @@ button:disabled {
     width: calc(100% - 24px);
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
-
 .autocomplete-item {
     padding: 10px 12px;
     cursor: pointer;
     border-bottom: 1px solid #f0f0f0;
     font-size: 13px;
 }
-
-.autocomplete-item:hover {
-    background: #f5f5f5;
-}
-
-.autocomplete-item:last-child {
-    border-bottom: none;
-}
-
-.autocomplete-item strong {
-    color: #2196F3;
-}
+.autocomplete-item:hover { background: #f5f5f5; }
+.autocomplete-item:last-child { border-bottom: none; }
+.autocomplete-item strong { color: #2196F3; }
 
 /* Latest Entries */
 .latest-entries-section {
@@ -327,15 +284,12 @@ button:disabled {
     padding: 20px;
     border-radius: 10px;
     border: 2px solid #4caf50;
-    /* Max-height removed so it can share space */
 }
-
 .latest-entries-section h3 {
     color: #2e7d32;
     margin-bottom: 15px;
     text-align: center;
 }
-
 .latest-ticket-item {
     background: white;
     padding: 12px;
@@ -344,17 +298,11 @@ button:disabled {
     border-left: 4px solid #4caf50;
     transition: all 0.3s ease;
 }
-
 .latest-ticket-item:hover {
     transform: translateX(5px);
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
-.ticket-route {
-    font-size: 13px;
-    margin-bottom: 5px;
-}
-
+.ticket-route { font-size: 13px; margin-bottom: 5px; }
 .ticket-details {
     display: flex;
     justify-content: space-between;
@@ -362,7 +310,6 @@ button:disabled {
     color: #666;
     margin-bottom: 5px;
 }
-
 .ticket-status {
     font-size: 10px;
     padding: 2px 6px;
@@ -370,7 +317,6 @@ button:disabled {
     text-align: center;
     font-weight: bold;
 }
-
 .ticket-status.received { background: #fff3cd; color: #856404; }
 .ticket-status.assigned { background: #d1ecf1; color: #0c5460; }
 .ticket-status.booked { background: #d4edda; color: #155724; }
