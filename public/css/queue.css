@@ -21,9 +21,11 @@
     margin-bottom: 15px;
     border-color: inherit;
 }
-/* === CHANGED === (Reduced font size) */
+/* === CHANGED === (Reduced font size again) */
 .train-header strong {
-    font-size: 1.0rem; /* Was 1.1rem */
+    font-size: 0.4rem; /* Was 1.0rem */
+    /* This will help with long names */
+    word-break: break-all; 
 }
 
 .train-title {
@@ -197,22 +199,20 @@
     font-size: 11px;
 }
 
-/* === CHANGED === (Increased font size) */
 .passenger-name {
     font-weight: bold;
     color: #333;
     min-width: 60px;
-    font-size: 12px; /* Was 11px */
+    font-size: 12px;
 }
 
 .passenger-detail {
     background: #f5f5f5;
     padding: 1px 4px;
     border-radius: 2px;
-    font-size: 10px; /* Was 9px */
+    font-size: 10px;
     color: #666;
 }
-/* === END CHANGES === */
 
 .group-remark-compact {
     font-size: 10px;
