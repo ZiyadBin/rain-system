@@ -55,7 +55,7 @@
     position: relative; /* For the rotated text */
     overflow: hidden; /* For the rotated text */
     padding: 10px;
-    padding-right: 30px; /* Space for the rotated text */
+    padding-right: 25px; /* Space for the rotated text */
 }
 
 .passenger-group-v2:hover {
@@ -72,8 +72,8 @@
 /* Rotated "Created By" text */
 .group-created-by {
     position: absolute;
-    right: -55px; /* Adjust as needed */
-    bottom: 60px; /* Adjust as needed */
+    right: -60px; /* Repositioned */
+    bottom: 50px; /* Repositioned */
     transform: rotate(-90deg);
     transform-origin: bottom right;
     font-size: 9px;
@@ -123,11 +123,13 @@
     font-weight: bold;
 }
 
+/* === CHANGED === (Fixes stacking) */
 .group-basic-info-v2 {
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* Was column */
+    flex-wrap: wrap;       /* Added */
     gap: 4px;
-    align-items: flex-start;
+    align-items: center;  /* Was flex-start */
 }
 
 .group-passenger-count {
