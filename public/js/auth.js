@@ -69,6 +69,15 @@ const auth = {
         document.getElementById('app-section').style.display = 'block';
         this.updateUserDisplay();
         
+        // === CHANGED === (Hide Reports button for staff)
+        const reportsButton = document.getElementById('nav-button-reports');
+        if (app.currentUser.role === 'staff') {
+            reportsButton.style.display = 'none';
+        } else {
+            reportsButton.style.display = 'inline-block';
+        }
+        // === END CHANGE ===
+        
         // Load the default home page after login
         app.showPage('home'); 
     },
@@ -84,8 +93,9 @@ const auth = {
         });
         const dateString = now.toLocaleDateString('en-IN');
         
+        // === CHANGED === (Removed role)
         document.getElementById('user-display').innerHTML = `
-            ${app.currentUser.name} (${app.currentUser.role})<br>
+            ${app.currentUser.name}<br>
             <small>${dateString} ${timeString}</small>
         `;
     },
