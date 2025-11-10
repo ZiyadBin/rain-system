@@ -123,7 +123,6 @@ const queue = {
             const trainTickets = trains[train];
             const totalPassengers = trainTickets.reduce((total, t) => total + t.passengers.split(',').length, 0);
             const trainColor = this.currentQueueType === 'AC' ? '#2196F3' : '#FF9800';
-            // === NEW ===
             const trainBackground = this.currentQueueType === 'AC' ?
                 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)' : 
                 'linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%)';
@@ -151,6 +150,7 @@ const queue = {
                     routeString = `${ticket.from_station} → ${ticket.boarding_station} → ${ticket.to_station}`;
                 }
                 
+                // === NEW CARD HTML v3 ===
                 html += `
                     <div class="passenger-group-v2 ${isSelected ? 'selected' : ''}" data-ticket-id="${ticket.id}">
                         
@@ -169,8 +169,12 @@ const queue = {
                                 <div class="group-basic-info-v2">
                                     <span class="group-passenger-count">${groupPassengerCount} PAX</span>
                                     <span class="ticket-class">${ticket.class}</span>
-                                    <span class="route-info">${routeString}</span>
                                 </div>
+                            </div>
+
+                            <div class="group-route-info">
+                                <span class="route-info">${routeString}</span>
+                                <span class="journey-date-info">DOJ: ${journeyDate}</span>
                             </div>
                             
                             <div class="passengers-list-compact">
@@ -178,18 +182,18 @@ const queue = {
                             </div>
                             
                             <div class="group-meta-v2">
-                                <span>Journey: ${journeyDate}</span>
                                 <span>📱 ${ticket.mobile || 'N/A'}</span>
                             </div>
                             
                             ${ticket.remark ? `
                             <div class="group-remark-compact" title="${ticket.remark}">
-                                <strong>💡</strong> ${ticket.remark.substring(0, 50)}...
+                                <strong>💡</strong> ${ticket.remark.substring(0, 30)}...
                             </div>
                             ` : ''}
                         </div>
                     </div>
                 `;
+                // === END CARD HTML v3 ===
             });
             
             html += `
