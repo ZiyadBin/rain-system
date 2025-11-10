@@ -1,4 +1,4 @@
-// quickEntry.js - Enhanced with train number and boarding station
+// quickEntry.js - Enhanced with WhatsApp Parser
 const quickEntry = {
     stations: [],
     latestTickets: [],
@@ -20,6 +20,8 @@ const quickEntry = {
         }
     },
 
+    // === CHANGED ===
+    // Updated to include the parser and new passenger row layout
     renderForm() {
         const quickEntryDiv = document.getElementById('quick-entry');
         quickEntryDiv.innerHTML = `
@@ -27,7 +29,6 @@ const quickEntry = {
                 <h2>Quick Ticket Entry</h2>
                 
                 <div class="quick-entry-layout">
-                    <!-- Left Side - Main Form -->
                     <div class="form-container">
                         <div class="form-grid">
                             <div class="form-group">
@@ -77,7 +78,6 @@ const quickEntry = {
                             </div>
                         </div>
                         
-                        <!-- Passengers Section -->
                         <div class="form-group">
                             <label>Passengers</label>
                             <div style="font-size: 13px; color: #666; margin-bottom: 12px; font-style: italic;">
@@ -86,20 +86,17 @@ const quickEntry = {
                             <div id="passengers-list">
                                 <div class="passenger-row">
                                     <input type="text" placeholder="Passenger Name *" class="passenger-name" required>
-                                    <input type="number" placeholder="Age" class="passenger-age" min="1" max="120">
+                                    <input type="tel" placeholder="Mobile * (10 digits)" class="passenger-mobile" 
+                                           maxlength="10" pattern="[0-9]{10}" required>
+                                    <input type="number" placeholder="Age" class="passenger-age" min="1" max="100">
                                     <select class="passenger-gender">
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
                                     </select>
-                                    <input type="tel" placeholder="Mobile * (10 digits)" class="passenger-mobile" 
-                                           maxlength="10" pattern="[0-9]{10}" required>
                                 </div>
                             </div>
                             
                             <button onclick="quickEntry.addPassenger()" style="background: #6c757d;">+ Add Companion</button>
-                            <div style="font-size: 12px; color: #666; margin-top: 8px; font-style: italic;">
-                                Companions don't need mobile numbers
-                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -113,9 +110,16 @@ const quickEntry = {
                         </div>
                     </div>
 
-                    <!-- Right Side - Latest Entries Only -->
                     <div class="side-panel">
-                        <!-- Latest Entries -->
+                        
+                        <div class="parser-section">
+                            <h3>Smart Paste</h3>
+                            <textarea id="qe-parser-input" rows="8" placeholder="Paste customer details here..."></textarea>
+                            <button onclick="quickEntry.parseText()" style="width: 100%; margin: 10px 0 0 0;">
+                                ⚡ Parse & Fill Form
+                            </button>
+                        </div>
+                        
                         <div class="latest-entries-section">
                             <h3>📋 Latest Entries</h3>
                             <div id="latest-entries-list">
@@ -133,13 +137,12 @@ const quickEntry = {
         this.initAutocomplete('boarding-station', 'boarding-station-dropdown');
     },
 
+    // ... (initAutocomplete function is unchanged)
     initAutocomplete(inputId, dropdownId) {
         const input = document.getElementById(inputId);
         const dropdown = document.getElementById(dropdownId);
 
-        // Auto-capitalize input
         input.addEventListener('input', (e) => {
-            // Convert to uppercase as user types
             if (e.target.value) {
                 e.target.value = e.target.value.toUpperCase();
             }
@@ -147,7 +150,7 @@ const quickEntry = {
             const query = e.target.value.trim();
             dropdown.innerHTML = '';
             
-            if (query.length < 1) { // Reduced from 2 to 1 character
+            if (query.length < 1) {
                 dropdown.style.display = 'none';
                 return;
             }
@@ -161,11 +164,9 @@ const quickEntry = {
                 matches.forEach(station => {
                     const item = document.createElement('div');
                     item.className = 'autocomplete-item';
-                    item.innerHTML = `
-                        <strong>${station.code}</strong> - ${station.name}
-                    `;
+                    item.innerHTML = `<strong>${station.code}</strong> - ${station.name}`;
                     item.addEventListener('click', () => {
-                        input.value = station.code; // Already uppercase
+                        input.value = station.code;
                         dropdown.style.display = 'none';
                     });
                     dropdown.appendChild(item);
@@ -173,11 +174,9 @@ const quickEntry = {
                 dropdown.style.display = 'block';
             } else {
                 dropdown.style.display = 'none';
-                // Allow any station code - no validation error
             }
         });
 
-        // Hide dropdown when clicking outside
         document.addEventListener('click', (e) => {
             if (!input.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.style.display = 'none';
@@ -185,6 +184,7 @@ const quickEntry = {
         });
     },
 
+    // ... (loadLatestTickets and renderLatestTickets functions are unchanged)
     async loadLatestTickets() {
         try {
             const response = await fetch(`${app.API_BASE}/api/tickets?filter=MY&limit=5`, {
@@ -232,13 +232,15 @@ const quickEntry = {
         container.innerHTML = html;
     },
 
+    // === CHANGED ===
+    // Updated passenger age max to 100
     addPassenger() {
         const passengersList = document.getElementById('passengers-list');
         const newRow = document.createElement('div');
         newRow.className = 'passenger-row';
         newRow.innerHTML = `
             <input type="text" placeholder="Passenger Name *" class="passenger-name" required>
-            <input type="number" placeholder="Age" class="passenger-age" min="1" max="120">
+            <input type="number" placeholder="Age" class="passenger-age" min="1" max="100">
             <select class="passenger-gender">
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
@@ -247,46 +249,48 @@ const quickEntry = {
         passengersList.appendChild(newRow);
     },
 
+    // ... (setDefaultDate function is unchanged)
     setDefaultDate() {
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         document.getElementById('journey-date').value = tomorrow.toISOString().split('T')[0];
     },
 
+    // === CHANGED ===
+    // Updated to match new passenger row layout and age limit
     resetForm() {
-        if (!confirm('Are you sure you want to reset the form? All entered data will be lost.')) return;
-        
-        document.getElementById('from-station').value = '';
-        document.getElementById('to-station').value = '';
-        document.getElementById('boarding-station').value = '';
-        document.getElementById('train-number').value = '';
-        document.getElementById('class').value = '';
-        document.getElementById('remark').value = '';
-        
-        // Set tomorrow's date
-        this.setDefaultDate();
-        
-        // Reset passengers
-        const passengersList = document.getElementById('passengers-list');
-        passengersList.innerHTML = `
-            <div class="passenger-row">
-                <input type="text" placeholder="Passenger Name *" class="passenger-name" required>
-                <input type="number" placeholder="Age" class="passenger-age" min="1" max="120">
-                <select class="passenger-gender">
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                </select>
-                <input type="tel" placeholder="Mobile * (10 digits)" class="passenger-mobile" 
-                       maxlength="10" pattern="[0-9]{10}" required>
-            </div>
-        `;
-        
-        app.showMessage('Form reset successfully', 'success');
+        if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+            document.getElementById('from-station').value = '';
+            document.getElementById('to-station').value = '';
+            document.getElementById('boarding-station').value = '';
+            document.getElementById('train-number').value = '';
+            document.getElementById('class').value = '';
+            document.getElementById('remark').value = '';
+            document.getElementById('qe-parser-input').value = '';
+            
+            this.setDefaultDate();
+            
+            const passengersList = document.getElementById('passengers-list');
+            passengersList.innerHTML = `
+                <div class="passenger-row">
+                    <input type="text" placeholder="Passenger Name *" class="passenger-name" required>
+                    <input type="tel" placeholder="Mobile * (10 digits)" class="passenger-mobile" 
+                           maxlength="10" pattern="[0-9]{10}" required>
+                    <input type="number" placeholder="Age" class="passenger-age" min="1" max="100">
+                    <select class="passenger-gender">
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+            `;
+            
+            app.showMessage('Form reset successfully', 'success');
+        }
     },
 
+    // ... (saveTicket function is unchanged, but new parser logic below)
     async saveTicket() {
         try {
-            // Validate form - FIXED: Added proper variable declarations
             const fromStationInput = document.getElementById('from-station');
             const toStationInput = document.getElementById('to-station');
             const trainNumberInput = document.getElementById('train-number');
@@ -294,22 +298,20 @@ const quickEntry = {
             const journeyDateInput = document.getElementById('journey-date');
             const boardingStationInput = document.getElementById('boarding-station');
             
-            const fromStation = fromStationInput.value.trim().toUpperCase(); // Auto capitalize
-            const toStation = toStationInput.value.trim().toUpperCase(); // Auto capitalize
+            const fromStation = fromStationInput.value.trim().toUpperCase();
+            const toStation = toStationInput.value.trim().toUpperCase();
             const trainNumber = trainNumberInput.value.trim();
             const journeyClass = classInput.value;
             const journeyDate = journeyDateInput.value;
-            const boardingStation = boardingStationInput.value.trim().toUpperCase(); // Auto capitalize
+            const boardingStation = boardingStationInput.value.trim().toUpperCase();
             
             if (!fromStation || !toStation || !trainNumber || !journeyClass || !journeyDate) {
                 app.showMessage('❌ Please fill all required fields', 'error');
                 return;
             }
 
-            // VALIDATION: Allow any station code (removed strict validation)
             console.log('📍 Station codes:', { fromStation, toStation, boardingStation });
 
-            // Collect passengers
             const passengerRows = document.querySelectorAll('.passenger-row');
             const passengers = [];
             
@@ -318,7 +320,6 @@ const quickEntry = {
                 const nameInput = row.querySelector('.passenger-name');
                 const ageInput = row.querySelector('.passenger-age');
                 const genderInput = row.querySelector('.passenger-gender');
-                const mobileInput = row.querySelector('.passenger-mobile');
                 
                 const name = nameInput.value.trim();
                 
@@ -329,8 +330,10 @@ const quickEntry = {
                         gender: genderInput.value || 'Male'
                     };
                     
-                    // Only first passenger has mobile
+                    // === CHANGED ===
+                    // Mobile is now on the first row, find it
                     if (i === 0) {
+                        const mobileInput = row.querySelector('.passenger-mobile');
                         const mobile = mobileInput ? mobileInput.value.trim() : '';
                         if (!mobile) {
                             app.showMessage('❌ Mobile number is required for the first passenger', 'error');
@@ -352,22 +355,18 @@ const quickEntry = {
                 return;
             }
 
-            // Prepare ticket data
             const ticketData = {
                 username: app.currentUser.name,
-                from_station: fromStation, // Already capitalized
-                to_station: toStation, // Already capitalized
+                from_station: fromStation,
+                to_station: toStation,
                 train_number: trainNumber,
                 class: journeyClass,
                 journey_date: journeyDate,
-                boarding_station: boardingStation || '', // Already capitalized
+                boarding_station: boardingStation || '',
                 remark: document.getElementById('remark').value.trim(),
                 passengers: passengers
             };
 
-            console.log('📤 Saving ticket:', ticketData);
-
-            // Save to backend
             const response = await fetch(`${app.API_BASE}/api/tickets`, {
                 method: 'POST',
                 headers: { 
@@ -382,14 +381,12 @@ const quickEntry = {
             }
 
             const result = await response.json();
-            console.log('✅ Save response:', result);
 
             if (result.success) {
                 app.showMessage(`✅ Ticket saved successfully! ID: ${result.ticketId}`, 'success');
-                this.resetForm();
+                this.resetForm(); // This will show the confirm dialog
                 this.loadLatestTickets();
                 
-                // Auto-refresh queues if they are open
                 if (document.getElementById('ac-queue').classList.contains('active')) {
                     queue.load('AC');
                 }
@@ -404,5 +401,151 @@ const quickEntry = {
             console.error('❌ Save ticket error:', error);
             app.showMessage('❌ Network error: ' + error.message, 'error');
         }
+    },
+    
+    // === NEW PARSER FUNCTION ===
+    parseText() {
+        const text = document.getElementById('qe-parser-input').value;
+        if (!text.trim()) {
+            app.showMessage('ℹ️ Paste text into the box first', 'error');
+            return;
+        }
+
+        // 1. Clear the form (without confirmation)
+        document.getElementById('from-station').value = '';
+        document.getElementById('to-station').value = '';
+        document.getElementById('boarding-station').value = '';
+        document.getElementById('train-number').value = '';
+        document.getElementById('class').value = '';
+        document.getElementById('remark').value = '';
+        this.setDefaultDate();
+        const passengersList = document.getElementById('passengers-list');
+        passengersList.innerHTML = `
+            <div class="passenger-row">
+                <input type="text" placeholder="Passenger Name *" class="passenger-name" required>
+                <input type="tel" placeholder="Mobile * (10 digits)" class="passenger-mobile" 
+                       maxlength="10" pattern="[0-9]{10}" required>
+                <input type="number" placeholder="Age" class="passenger-age" min="1" max="100">
+                <select class="passenger-gender">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
+            </div>
+        `;
+        
+        let lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+        let passengerLines = [];
+        let primaryMobile = '';
+        let defaultGender = 'Male'; // Default gender
+        
+        // 2. Global Hints (Gender, Class, Mobile)
+        let classFound = '';
+        const classRegex = /\b(1A|2A|3A|CC|EC|SL|2S)\b/i;
+        const acRegex = /\b(AC)\b/i;
+        const mobileRegex = /\b(\d{10})\b/;
+
+        if (text.toUpperCase().includes('ALL FEMALE')) {
+            defaultGender = 'Female';
+        }
+        
+        const classMatch = text.match(classRegex);
+        if (classMatch) {
+            classFound = classMatch[1].toUpperCase();
+        } else if (text.match(acRegex)) {
+            classFound = '3A'; // Default to 3A if "AC" is mentioned
+        } else {
+            classFound = 'SL'; // Default to SL
+        }
+        document.getElementById('class').value = classFound;
+        
+        // Find and remove mobile number
+        for (let i = 0; i < lines.length; i++) {
+            const mobileMatch = lines[i].match(mobileRegex);
+            if (mobileMatch && !primaryMobile) {
+                primaryMobile = mobileMatch[1];
+                lines.splice(i, 1); // Remove the line
+                i--; // Adjust index
+            }
+        }
+
+        // 3. First Line (Route & Train)
+        const firstLine = lines.shift() || ''; // Take the first line and remove it
+        let trainPart = firstLine;
+        let foundStations = [];
+
+        // Find station codes
+        const allStationCodes = this.stations.map(s => s.code);
+        const words = trainPart.split(/\s+/);
+        words.forEach(word => {
+            if (allStationCodes.includes(word.toUpperCase())) {
+                foundStations.push(word.toUpperCase());
+                // Remove station code from train part (tricky, do it by replacing)
+                trainPart = trainPart.replace(new RegExp(`\\b${word}\\b`, 'i'), '');
+            }
+        });
+
+        if (foundStations.length === 3) {
+            document.getElementById('from-station').value = foundStations[0];
+            document.getElementById('boarding-station').value = foundStations[1];
+            document.getElementById('to-station').value = foundStations[2];
+        } else if (foundStations.length === 2) {
+            document.getElementById('from-station').value = foundStations[0];
+            document.getElementById('to-station').value = foundStations[1];
+        }
+        
+        // What's left is the train
+        document.getElementById('train-number').value = trainPart.trim();
+        
+        // 4. Passengers
+        passengerLines = lines; // What's left are passenger lines
+        const firstPassengerRow = passengersList.querySelector('.passenger-row');
+
+        for (let i = 0; i < passengerLines.length; i++) {
+            let line = passengerLines[i];
+            
+            let gender = defaultGender;
+            let age = '';
+            let name = '';
+
+            // Parse Right-to-Left
+            // Find Gender
+            const genderMatch = line.match(/\b([MF])\b$/i);
+            if (genderMatch) {
+                gender = genderMatch[1].toUpperCase() === 'M' ? 'Male' : 'Female';
+                line = line.replace(/\b([MF])\b$/i, '').trim();
+            }
+
+            // Find Age
+            const ageMatch = line.match(/\b(\d{1,3})\b$/);
+            if (ageMatch) {
+                age = ageMatch[1];
+                line = line.replace(/\b(\d{1,3})\b$/, '').trim();
+            }
+            
+            // What's left is the name
+            name = line.trim();
+
+            if (!name) continue; // Skip empty lines or lines with only age/gender
+
+            // Get the row to fill
+            let currentRow;
+            if (i === 0) {
+                currentRow = firstPassengerRow;
+            } else {
+                this.addPassenger(); // Add a new row
+                currentRow = passengersList.lastChild; // Get that new row
+            }
+            
+            // Fill the row
+            currentRow.querySelector('.passenger-name').value = name;
+            currentRow.querySelector('.passenger-age').value = age;
+            currentRow.querySelector('.passenger-gender').value = gender;
+            
+            if (i === 0) {
+                currentRow.querySelector('.passenger-mobile').value = primaryMobile;
+            }
+        }
+        
+        app.showMessage('✅ Form has been auto-filled. Please review.', 'success');
     }
 };
