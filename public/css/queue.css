@@ -23,7 +23,7 @@
 }
 /* === CHANGED === (Reduced font size) */
 .train-header strong {
-    font-size: 1.1rem;
+    font-size: 1.0rem; /* Was 1.1rem */
 }
 
 .train-title {
@@ -49,7 +49,6 @@
 
 /* === NEW COMPACT CARD STYLES === */
 .passenger-group-v2 {
-    /* === CHANGED === (Added background) */
     background: #ffffff;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -72,7 +71,6 @@
     box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
 }
 
-/* === CHANGED === (Fixed position) */
 .group-created-by {
     position: absolute;
     right: -55px;
@@ -80,7 +78,7 @@
     transform: rotate(-90deg);
     transform-origin: bottom right;
     font-size: 9px;
-    color: #aaa; /* Made lighter */
+    color: #aaa;
     white-space: nowrap;
     letter-spacing: 0.5px;
 }
@@ -123,7 +121,6 @@
     font-weight: bold;
 }
 
-/* === CHANGED === (Fixes stacking) */
 .group-basic-info-v2 {
     display: flex;
     flex-direction: row;
@@ -150,7 +147,6 @@
     font-weight: bold;
 }
 
-/* === NEW === (Route/DOJ row) */
 .group-route-info {
     display: flex;
     justify-content: space-between;
@@ -174,9 +170,7 @@
     font-weight: bold;
     flex-shrink: 0;
 }
-/* === END NEW === */
 
-/* === CHANGED === (Mobile-only box) */
 .group-meta-v2 {
     font-size: 11px;
     color: #333;
@@ -189,12 +183,11 @@
     font-weight: bold;
 }
 
-/* === CHANGED === (Tighter spacing) */
 .passengers-list-compact {
     margin: 4px 0;
     display: flex;
     flex-direction: column;
-    gap: 2px; /* Reduced line spacing */
+    gap: 2px;
 }
 
 .passenger-item-compact {
@@ -204,20 +197,22 @@
     font-size: 11px;
 }
 
+/* === CHANGED === (Increased font size) */
 .passenger-name {
     font-weight: bold;
     color: #333;
-    min-width: 60px; /* Reduced min-width */
+    min-width: 60px;
+    font-size: 12px; /* Was 11px */
 }
-/* === END CHANGES === */
 
 .passenger-detail {
     background: #f5f5f5;
     padding: 1px 4px;
     border-radius: 2px;
-    font-size: 9px;
+    font-size: 10px; /* Was 9px */
     color: #666;
 }
+/* === END CHANGES === */
 
 .group-remark-compact {
     font-size: 10px;
