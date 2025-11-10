@@ -1,0 +1,94 @@
+/* ===== 2. LAYOUT FIX ===== */
+/* Make the app container wider */
+.container {
+    max-width: 1400px; /* Was 1000px */
+    margin: 20px auto;
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* Keep the login box small and centered */
+#login-section {
+    max-width: 450px;
+    margin: 50px auto;
+}
+/* ===== END LAYOUT FIX ===== */
+
+
+.section {
+    margin-bottom: 30px;
+    padding: 25px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    background: #fafafa;
+}
+
+.nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 3px solid #e0e0e0;
+    padding-bottom: 15px;
+    flex-wrap: wrap;
+}
+
+.user-info {
+    float: right;
+    color: #555;
+    font-weight: bold;
+    background: #e8f5e8;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.user-info small {
+    display: block;
+    font-size: 11px;
+    color: #888;
+    margin-top: 2px;
+}
+
+.dashboard-controls,
+.queue-controls,
+.history-controls,
+.reports-controls {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.demo-accounts {
+    background: #e3f2fd;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+    border-left: 4px solid #2196F3;
+}
+
+/* Responsive Design */
+@media (max-width: 900px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .nav {
+        flex-direction: column;
+    }
+    
+    .nav-button.logout {
+        margin-left: 0;
+        margin-top: 10px;
+    }
+
+    .queue-controls {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
