@@ -1,11 +1,25 @@
 const express = require('express');
 const router = express.Router();
+const fs = require('fs');
+const path = require('path');
 
-// Mock user database (same as frontend)
-const USERS = {
-    'ziyad': { password: 'ziyad123', name: 'Ziyad', role: 'admin' },
-    'najad': { password: 'najad123', name: 'Najad', role: 'staff' },
-    'babu': { password: 'babu123', name: 'Babu', role: 'staff' }
+// Path to the users JSON file
+const USERS_PATH = path.join(__dirname, '../../public/data/users.json');
+
+// Helper function to read users
+const readUsers = () => {
+    try {
+        const data = fs.readFileSync(USERS_PATH, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.error('Error reading users.json:', error);
+        // Fallback in case file is missing
+        return [
+            { username: 'ziyad', password: 'ziyad123', name: 'Ziyad', role: 'admin' },
+            { username: 'najad', password: 'najad123', name: 'Najad', role: 'staff' },
+            { username: 'babu', password: 'babu123', name: 'Babu', role: 'staff' }
+        ];
+    }
 };
 
 // Login endpoint
@@ -20,14 +34,15 @@ router.post('/login', (req, res) => {
             });
         }
 
-        const user = USERS[username];
+        const users = readUsers();
+        const user = users.find(u => u.username === username.trim() && u.password === password);
         
-        if (user && user.password === password) {
+        if (user) {
             // Return user info (without password)
             const { password: _, ...userInfo } = user;
             res.json({
                 success: true,
-                user: { username, ...userInfo },
+                user: userInfo, // Send user object (name, role, username)
                 message: 'Login successful'
             });
         } else {
@@ -49,14 +64,6 @@ router.post('/logout', (req, res) => {
     res.json({
         success: true,
         message: 'Logout successful'
-    });
-});
-
-// Verify token/session (for future use)
-router.get('/verify', (req, res) => {
-    res.json({
-        success: true,
-        user: { username: 'ziyad', name: 'Ziyad', role: 'admin' }
     });
 });
 
