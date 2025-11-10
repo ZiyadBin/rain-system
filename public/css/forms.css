@@ -181,7 +181,7 @@ button:disabled {
     flex: 1;
 }
 
-/* === NEW PARSER STYLES === */
+/* Parser Styles */
 .parser-section {
     background: #fff8e1;
     padding: 20px;
@@ -209,22 +209,21 @@ button:disabled {
 #qe-parser-input:focus {
     border-color: #ff9800;
 }
-/* === END NEW PARSER STYLES === */
 
 
 /* === CHANGED PASSENGER ROW STYLES === */
 .passenger-row {
     display: grid;
-    /* Layout for Name | Age | Gender */
-    grid-template-columns: 3fr 1fr 1fr;
+    /* Layout for: Name | Age | Gender */
+    grid-template-columns: 3fr 0.5fr 1fr;
     gap: 12px;
     margin-bottom: 12px;
     align-items: end;
 }
 
 .passenger-row:first-child {
-    /* Layout for Name | Mobile | Age | Gender */
-    grid-template-columns: 2.5fr 1.5fr 0.5fr 1fr;
+    /* Layout for: Name | Age | Mobile | Gender */
+    grid-template-columns: 2.5fr 0.5fr 1.5fr 1fr;
 }
 /* === END CHANGED STYLES === */
 
