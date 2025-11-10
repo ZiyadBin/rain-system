@@ -1,0 +1,320 @@
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 14px;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+button {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 14px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    margin: 5px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.nav-button {
+    background: #6c757d;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    font-weight: bold;
+}
+
+.nav-button.active {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+}
+
+.nav-button.logout {
+    background: linear-gradient(135deg, #f44336, #d32f2f);
+    margin-left: auto;
+}
+
+.refresh-btn {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+}
+
+.filter-btn {
+    background: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.filter-btn.active {
+    background: #28a745;
+}
+
+/* Modals */
+.edit-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.edit-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.edit-form-group {
+    margin-bottom: 15px;
+}
+
+.edit-form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.edit-form-group input,
+.edit-form-group select,
+.edit-form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.close-btn {
+    background: #6c757d;
+}
+
+.save-btn {
+    background: #28a745;
+}
+
+/* Quick Entry */
+.quick-entry-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 30px;
+    align-items: start;
+}
+
+.form-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+}
+
+.side-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.form-actions button {
+    flex: 1;
+}
+
+.passenger-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+    align-items: end;
+}
+
+.passenger-row:first-child {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+}
+
+.passenger-mobile {
+    background: #f0f8ff;
+}
+
+/* Auto-capitalize station inputs */
+#from-station,
+#to-station, 
+#boarding-station {
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.form-group label[for*="station"]::after {
+    content: " (3-4 letter code)";
+    font-size: 12px;
+    color: #666;
+    font-style: italic;
+    font-weight: normal;
+}
+
+/* Autocomplete Styles */
+.autocomplete-dropdown {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: calc(100% - 24px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.autocomplete-item {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 13px;
+}
+
+.autocomplete-item:hover {
+    background: #f5f5f5;
+}
+
+.autocomplete-item:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-item strong {
+    color: #2196F3;
+}
+
+/* Latest Entries */
+.latest-entries-section {
+    background: #e8f5e8;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #4caf50;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.latest-entries-section h3 {
+    color: #2e7d32;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.latest-ticket-item {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    border-left: 4px solid #4caf50;
+    transition: all 0.3s ease;
+}
+
+.latest-ticket-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.ticket-route {
+    font-size: 13px;
+    margin-bottom: 5px;
+}
+
+.ticket-details {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.ticket-status {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: bold;
+}
+
+.ticket-status.received { background: #fff3cd; color: #856404; }
+.ticket-status.assigned { background: #d1ecf1; color: #0c5460; }
+.ticket-status.booked { background: #d4edda; color: #155724; }
+
+
+@media (max-width: 900px) {
+    .passenger-row,
+    .passenger-row:first-child {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-entry-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .side-panel {
+        order: -1;
+    }
+}
