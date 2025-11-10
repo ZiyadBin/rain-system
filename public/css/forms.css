@@ -181,17 +181,52 @@ button:disabled {
     flex: 1;
 }
 
+/* === NEW PARSER STYLES === */
+.parser-section {
+    background: #fff8e1;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #ffd54f;
+}
+
+.parser-section h3 {
+    color: #f57c00;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#qe-parser-input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ffd54f;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: monospace;
+    resize: vertical;
+    background: #fffdf6;
+}
+
+#qe-parser-input:focus {
+    border-color: #ff9800;
+}
+/* === END NEW PARSER STYLES === */
+
+
+/* === CHANGED PASSENGER ROW STYLES === */
 .passenger-row {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    /* Layout for Name | Age | Gender */
+    grid-template-columns: 3fr 1fr 1fr;
     gap: 12px;
     margin-bottom: 12px;
     align-items: end;
 }
 
 .passenger-row:first-child {
-    grid-template-columns: 2fr 1fr 1fr 1fr;
+    /* Layout for Name | Mobile | Age | Gender */
+    grid-template-columns: 2.5fr 1.5fr 0.5fr 1fr;
 }
+/* === END CHANGED STYLES === */
 
 .passenger-mobile {
     background: #f0f8ff;
@@ -307,6 +342,7 @@ button:disabled {
 @media (max-width: 900px) {
     .passenger-row,
     .passenger-row:first-child {
+        /* Stack them on mobile */
         grid-template-columns: 1fr;
     }
     
