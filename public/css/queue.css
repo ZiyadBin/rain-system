@@ -23,7 +23,7 @@
 }
 /* === CHANGED === (Reduced font size again) */
 .train-header strong {
-    font-size: 0.4rem; /* Was 1.0rem */
+    font-size: 0.7rem; /* Was 1.0rem */
     /* This will help with long names */
     word-break: break-all; 
 }
