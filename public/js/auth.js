@@ -1,6 +1,30 @@
 // auth.js - Server-side authentication
 const auth = {
-    
+    users: [], // Cache for the user list
+
+    // === NEW FUNCTION ===
+    // Fetches user list from server and caches it
+    async loadUsers() {
+        if (this.users.length > 0) {
+            return this.users; // Return from cache if available
+        }
+        
+        try {
+            const response = await fetch(`${app.API_BASE}/api/auth/users`);
+            const result = await response.json();
+            if (result.success) {
+                this.users = result.users; // Cache the list
+                return this.users;
+            } else {
+                return []; // Return empty on error
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+            return [];
+        }
+    },
+    // === END NEW FUNCTION ===
+
     async handleLogin() {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value;
@@ -27,6 +51,9 @@ const auth = {
                 
                 this.showApp();
                 app.showMessage('🎉 Login successful!', 'success');
+
+                // Pre-load the user list for the "Assign" modal
+                this.loadUsers();
             } else {
                 app.showMessage(`❌ ${result.error || 'Invalid username or password'}`, 'error');
             }
@@ -66,6 +93,7 @@ const auth = {
     logout() {
         if (confirm('Are you sure you want to logout?')) {
             app.currentUser = null;
+            this.users = []; // Clear user cache on logout
             document.getElementById('app-section').style.display = 'none';
             document.getElementById('login-section').style.display = 'block';
             document.getElementById('username').value = '';
