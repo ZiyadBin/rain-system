@@ -2,31 +2,31 @@
   {
     "username": "Ziyad",
     "password": "ziyad123",
-    "name": "ZIYAD",
+    "name": "Ziyad",
     "role": "admin"
   },
   {
     "username": "Najad", 
     "password": "najad123",
-    "name": "NAJAD",
+    "name": "Najad",
     "role": "staff"
   },
   {
     "username": "Babu",
     "password": "babu123", 
-    "name": "BABU",
+    "name": "Babu",
     "role": "staff"
   },
   {
     "username": "Khan",
     "password": "khan123", 
-    "name": "KHAN",
+    "name": "Khan",
     "role": "admin"
   },
   {
     "username": "MKeem",
     "password": "mkeem123", 
-    "name": "MKEEM",
+    "name": "Mkeem",
     "role": "admin"
   }
 ]
