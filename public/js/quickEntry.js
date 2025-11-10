@@ -1,4 +1,4 @@
-// quickEntry.js - Enhanced with WhatsApp Parser (v2)
+// quickEntry.js - Enhanced with Notepad and new layout
 const quickEntry = {
     stations: [],
     latestTickets: [],
@@ -20,6 +20,8 @@ const quickEntry = {
         }
     },
 
+    // === CHANGED ===
+    // Updated to include the new 50/50 side panel and placeholder
     renderForm() {
         const quickEntryDiv = document.getElementById('quick-entry');
         quickEntryDiv.innerHTML = `
@@ -73,9 +75,6 @@ const quickEntry = {
                         
                         <div class="form-group">
                             <label>Passengers</label>
-                            <div style="font-size: 13px; color: #666; margin-bottom: 12px; font-style: italic;">
-                                📱 Mobile number (10 digits) only required for first passenger
-                            </div>
                             <div id="passengers-list">
                                 <div class="passenger-row">
                                     <input type="text" placeholder="Passenger Name *" class="passenger-name" required>
@@ -88,13 +87,12 @@ const quickEntry = {
                                     </select>
                                 </div>
                             </div>
-                            
                             <button onclick="quickEntry.addPassenger()" style="background: #6c757d;">+ Add Companion</button>
                         </div>
                         
                         <div class="form-group">
                             <label for="remark">Remarks (Optional)</label>
-                            <textarea id="remark" rows="3" placeholder="Any additional notes or special requirements..."></textarea>
+                            <textarea id="remark" rows="3" placeholder="Any additional notes..."></textarea>
                         </div>
                         
                         <div class="form-actions">
@@ -104,19 +102,28 @@ const quickEntry = {
                     </div>
 
                     <div class="side-panel">
-                        <div class="parser-section">
-                            <h3>Smart Paste</h3>
-                            <textarea id="qe-parser-input" rows="8" 
-                                      placeholder="FROM TO Train NO/Type&#10;NAme AGE M/F&#10;Number"></textarea>
-                            <button onclick="quickEntry.parseText()" style="width: 100%; margin: 10px 0 0 0;">
-                                ⚡ Parse & Fill Form
-                            </button>
+                        <div class="side-panel-col">
+                            <div class="parser-section">
+                                <h3>Smart Paste</h3>
+                                <textarea id="qe-parser-input" rows="8" 
+                                          placeholder="FROM TO Train No/Type&#10;Name Age M/F&#10;Mob. No."></textarea>
+                                <button onclick="quickEntry.parseText()" style="width: 100%; margin: 10px 0 0 0;">
+                                    ⚡ Parse & Fill Form
+                                </button>
+                            </div>
+                            
+                            <div class="latest-entries-section">
+                                <h3>📋 Latest Entries</h3>
+                                <div id="latest-entries-list">
+                                    <p>Loading latest tickets...</p>
+                                </div>
+                            </div>
                         </div>
                         
-                        <div class="latest-entries-section">
-                            <h3>📋 Latest Entries</h3>
-                            <div id="latest-entries-list">
-                                <p>Loading latest tickets...</p>
+                        <div class="side-panel-col">
+                            <div class="notepad-section">
+                                <h3>Notepad</h3>
+                                <textarea id="qe-notepad" placeholder="Scratchpad for notes, numbers, etc..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -124,7 +131,6 @@ const quickEntry = {
             </div>
         `;
 
-        // Initialize autocomplete for all station fields
         this.initAutocomplete('from-station', 'from-station-dropdown');
         this.initAutocomplete('to-station', 'to-station-dropdown');
         this.initAutocomplete('boarding-station', 'boarding-station-dropdown');
@@ -198,7 +204,7 @@ const quickEntry = {
         container.innerHTML = html;
     },
 
-    // (addPassenger is unchanged)
+    // (addPassenger layout is unchanged in JS, only in CSS)
     addPassenger() {
         const passengersList = document.getElementById('passengers-list');
         const newRow = document.createElement('div');
@@ -221,7 +227,8 @@ const quickEntry = {
         document.getElementById('journey-date').value = tomorrow.toISOString().split('T')[0];
     },
 
-    // (resetForm is unchanged)
+    // === CHANGED ===
+    // Now clears the new notepad
     resetForm(confirmReset = true) {
         if (confirmReset && !confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
             return;
@@ -234,6 +241,7 @@ const quickEntry = {
         document.getElementById('class').value = '';
         document.getElementById('remark').value = '';
         document.getElementById('qe-parser-input').value = '';
+        document.getElementById('qe-notepad').value = ''; // Clear notepad
         
         this.setDefaultDate();
         
@@ -256,10 +264,9 @@ const quickEntry = {
         }
     },
 
+    // (saveTicket is unchanged)
     async saveTicket() {
         try {
-            // ... (all the form validation logic is the same)
-            // ...
             const fromStation = document.getElementById('from-station').value.trim().toUpperCase();
             const toStation = document.getElementById('to-station').value.trim().toUpperCase();
             const trainNumber = document.getElementById('train-number').value.trim();
@@ -324,36 +331,28 @@ const quickEntry = {
             });
 
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            
             const result = await response.json();
 
-            // === CHANGED ===
             if (result.success) {
-                // Check if the backend flagged it as a duplicate
                 if (result.isDuplicate) {
-                    app.showMessage(`⚠️ Ticket saved, but flagged as a potential duplicate.`, 'error'); // Show 'error' style (yellow/red)
+                    app.showMessage(`⚠️ Ticket saved, but flagged as a potential duplicate.`, 'error');
                 } else {
                     app.showMessage(`✅ Ticket saved successfully! ID: ${result.ticketId}`, 'success');
                 }
-                
-                this.resetForm(true); // Reset with confirmation
+                this.resetForm(true); 
                 this.loadLatestTickets();
-                
-                // Refresh queues and the new duplicates count badge
                 app.updateDuplicatesCount();
                 if (document.getElementById('ac-queue').classList.contains('active')) queue.load('AC');
                 if (document.getElementById('non-ac-queue').classList.contains('active')) queue.load('NON_AC');
-            
             } else {
                 app.showMessage('❌ Error saving ticket: ' + result.error, 'error');
             }
-            // === END CHANGE ===
-
         } catch (error) {
             console.error('❌ Save ticket error:', error);
             app.showMessage('❌ Network error: ' + error.message, 'error');
         }
     },
+    
     // (parseText is unchanged)
     parseText() {
         const text = document.getElementById('qe-parser-input').value;
