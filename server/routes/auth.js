@@ -59,6 +59,26 @@ router.post('/login', (req, res) => {
     }
 });
 
+// === NEW ENDPOINT ===
+// Get all users (for assign modal)
+router.get('/users', (req, res) => {
+    try {
+        const users = readUsers();
+        // Send users WITHOUT passwords
+        const safeUsers = users.map(user => {
+            const { password, ...safeUser } = user;
+            return safeUser;
+        });
+        res.json({ success: true, users: safeUsers });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            error: 'Failed to load users: ' + error.message
+        });
+    }
+});
+// === END NEW ENDPOINT ===
+
 // Logout endpoint (for future session management)
 router.post('/logout', (req, res) => {
     res.json({
