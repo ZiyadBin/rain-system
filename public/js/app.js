@@ -1,19 +1,19 @@
 // app.js - Main application controller
 const app = {
     currentUser: null,
-    currentFilter: 'MY', // FIXED: Default to 'MY' for user's tickets only
+    currentFilter: 'MY', // Default filter for queues
     API_BASE: window.location.origin,
     updateTimeInterval: null,
 
     init() {
         console.log('🌧️ Rain System initialized');
-        this.injectCSS();
         this.setupEventListeners();
         this.startClock();
+        // Check login status
+        auth.checkLogin();
     },
 
     startClock() {
-        // Update time every second
         this.updateTimeInterval = setInterval(() => {
             if (this.currentUser) {
                 auth.updateUserDisplay();
@@ -21,35 +21,46 @@ const app = {
         }, 1000);
     },
 
-    injectCSS() {
-        // Your existing CSS injection code remains the same
-        const style = document.createElement('style');
-        style.textContent = `/* Your CSS here */`;
-        document.head.appendChild(style);
-    },
+    // === NEW FUNCTION ===
+    // This will fetch the count of duplicates and update the badge
+    async updateDuplicatesCount() {
+        if (!this.currentUser) return; // Don't run if logged out
 
-    // NOTE: Accept optional event parameter and safely determine the clicked nav button.
+        try {
+            const response = await fetch(`${app.API_BASE}/api/tickets/duplicates`);
+            const duplicates = await response.json();
+            const badge = document.getElementById('duplicates-count-badge');
+            
+            if (badge) {
+                if (duplicates.length > 0) {
+                    badge.textContent = duplicates.length;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching duplicates count:', error);
+        }
+    },
+    // === END NEW FUNCTION ===
+
     showPage(pageId, ev) {
-        // Hide all pages
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
         
-        // Show target page
         const pageEl = document.getElementById(pageId);
         if (pageEl) pageEl.classList.add('active');
 
-        // Safely mark the nav button active.
-        // If the click event is passed, use its target. Otherwise, find the button whose onclick refers to the pageId.
-        let activeBtn = null;
+        // Make the clicked button active
         if (ev && ev.target) {
-            activeBtn = ev.target;
+            ev.target.classList.add('active');
         } else {
-            // Fallback: find inline nav-button whose onclick contains the pageId string
-            activeBtn = document.querySelector(`.nav-button[onclick*="${pageId}"]`);
+            // Fallback for page loads not from a click
+            const activeBtn = document.querySelector(`.nav-button[onclick*="'${pageId}'"]`);
+            if (activeBtn) activeBtn.classList.add('active');
         }
-        if (activeBtn) activeBtn.classList.add('active');
         
-        // Load page-specific content
         switch(pageId) {
             case 'home':
                 home.load();
@@ -63,6 +74,11 @@ const app = {
             case 'non-ac-queue':
                 queue.load('NON_AC');
                 break;
+            // === NEW CASE ===
+            case 'duplicates':
+                duplicates.load();
+                break;
+            // === END NEW CASE ===
             case 'history':
                 history.load();
                 break;
@@ -70,6 +86,9 @@ const app = {
                 reports.load();
                 break;
         }
+        
+        // After any page load, refresh the duplicates count
+        this.updateDuplicatesCount();
     },
 
     setupEventListeners() {
