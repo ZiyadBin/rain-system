@@ -1,7 +1,8 @@
 /* ===== QUEUE LAYOUTS ===== */
 .trains-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    /* === CHANGED === (Reduced min-width to 250px to fit more cards) */
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 20px;
     margin-top: 20px;
 }
