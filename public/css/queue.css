@@ -1,19 +1,18 @@
 /* ===== QUEUE LAYOUTS ===== */
 .trains-grid {
     display: grid;
-    /* === CHANGED === (Made more aggressive to fit 5) */
+    /* Made aggressive to fit 5 */
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 12px; /* Further reduced gap */
+    gap: 12px;
     margin-top: 20px;
 }
 
 .train-sticky-note {
     border: 2px solid;
     border-radius: 10px;
-    padding: 15px; /* Reduced padding */
+    padding: 15px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     min-height: 200px;
-    /* Removed fixed background gradient, color set in JS */
 }
 
 .train-header {
@@ -22,21 +21,24 @@
     margin-bottom: 15px;
     border-color: inherit;
 }
+/* === CHANGED === (Reduced font size) */
+.train-header strong {
+    font-size: 1.1rem;
+}
 
 .train-title {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 16px;
 }
 
 .passenger-count {
-    /* background: #4caf50; */ /* Set in JS */
     color: white;
     padding: 4px 10px;
     border-radius: 15px;
     font-size: 12px;
     font-weight: bold;
+    flex-shrink: 0; /* Prevent shrinking */
 }
 
 .groups-container {
@@ -47,15 +49,16 @@
 
 /* === NEW COMPACT CARD STYLES === */
 .passenger-group-v2 {
-    background: rgba(255,255,255,0.9);
+    /* === CHANGED === (Added background) */
+    background: #ffffff;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     transition: all 0.3s ease;
     cursor: pointer;
-    position: relative; /* For the rotated text */
-    overflow: hidden; /* For the rotated text */
+    position: relative;
+    overflow: hidden;
     padding: 10px;
-    padding-right: 25px; /* Space for the rotated text */
+    padding-right: 25px;
 }
 
 .passenger-group-v2:hover {
@@ -69,18 +72,15 @@
     box-shadow: 0 2px 8px rgba(33, 150, 243, 0.2);
 }
 
-/* Rotated "Created By" text */
+/* === CHANGED === (Fixed position) */
 .group-created-by {
     position: absolute;
-    right: -60px; /* Repositioned */
-    bottom: 50px; /* Repositioned */
+    right: -55px;
+    bottom: 60px;
     transform: rotate(-90deg);
     transform-origin: bottom right;
     font-size: 9px;
-    color: #888;
-    background: #f0f0f0;
-    padding: 2px 5px;
-    border-radius: 3px 3px 0 0;
+    color: #aaa; /* Made lighter */
     white-space: nowrap;
     letter-spacing: 0.5px;
 }
@@ -126,10 +126,10 @@
 /* === CHANGED === (Fixes stacking) */
 .group-basic-info-v2 {
     display: flex;
-    flex-direction: row; /* Was column */
-    flex-wrap: wrap;       /* Added */
-    gap: 4px;
-    align-items: center;  /* Was flex-start */
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
 }
 
 .group-passenger-count {
@@ -150,46 +150,66 @@
     font-weight: bold;
 }
 
+/* === NEW === (Route/DOJ row) */
+.group-route-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+}
 .route-info {
     background: #f8f9fa;
     padding: 2px 6px;
     border-radius: 3px;
-    font-size: 10px;
     color: #495057;
     border: 1px solid #dee2e6;
     font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-
-.group-meta-v2 {
-    font-size: 10px;
+.journey-date-info {
     color: #666;
-    display: flex;
-    flex-direction: column; /* Stacked */
-    gap: 4px;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+/* === END NEW === */
+
+/* === CHANGED === (Mobile-only box) */
+.group-meta-v2 {
+    font-size: 11px;
+    color: #333;
     background: #f0f8ff;
-    padding: 5px;
+    padding: 5px 8px;
     border-radius: 3px;
     border-left: 2px solid #2196F3;
 }
+.group-meta-v2 span {
+    font-weight: bold;
+}
 
+/* === CHANGED === (Tighter spacing) */
 .passengers-list-compact {
-    margin: 6px 0;
+    margin: 4px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px; /* Reduced line spacing */
 }
 
 .passenger-item-compact {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 3px 0;
     font-size: 11px;
 }
 
 .passenger-name {
     font-weight: bold;
     color: #333;
-    min-width: 80px;
-    flex-shrink: 0;
+    min-width: 60px; /* Reduced min-width */
 }
+/* === END CHANGES === */
 
 .passenger-detail {
     background: #f5f5f5;
@@ -207,9 +227,10 @@
     border-radius: 3px;
     border-left: 2px solid #ffc107;
     margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
-/* === END NEW CARD STYLES === */
-
 
 /* Bulk Actions */
 .bulk-actions {
@@ -218,23 +239,20 @@
     border-radius: 8px;
     margin-bottom: 20px;
     border: 2px solid #2196F3;
-    display: none; /* JS will change this to 'flex' */
+    display: none;
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
     animation: slideDown 0.3s ease;
 }
-
 @keyframes slideDown {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 .bulk-actions strong {
     color: #1976d2;
     margin-right: 10px;
 }
-
 .action-btn {
     padding: 8px 12px;
     font-size: 12px;
@@ -244,16 +262,11 @@
     font-weight: bold;
     transition: all 0.3s ease;
 }
-
-.action-btn:hover {
-    transform: translateY(-1px);
-}
-
+.action-btn:hover { transform: translateY(-1px); }
 .edit-btn { background: #2196F3; color: white; }
 .booked-btn { background: #4caf50; color: white; }
 .assign-btn { background: #ff9800; color: white; }
 .delete-btn { background: #f44336; color: white; }
-
 .action-btn-small {
     padding: 4px 8px;
     font-size: 10px;
@@ -262,14 +275,12 @@
     cursor: pointer;
     font-weight: bold;
 }
-
 .staff-list {
     display: flex;
     flex-direction: column;
     gap: 10px;
     margin: 15px 0;
 }
-
 .staff-assign-btn {
     background: #ff9800;
     color: white;
@@ -279,36 +290,27 @@
     cursor: pointer;
     font-weight: bold;
 }
-
-.staff-assign-btn:hover {
-    background: #f57c00;
-}
+.staff-assign-btn:hover { background: #f57c00; }
 
 @media (max-width: 1400px) {
     .trains-grid {
-        /* Go to 4 columns on medium-large screens */
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     }
 }
-
-
 @media (max-width: 900px) {
     .trains-grid {
         grid-template-columns: repeat(2, 1fr);
     }
 }
-
 @media (max-width: 768px) {
     .trains-grid {
         grid-template-columns: 1fr;
     }
 }
-
 @media (max-width: 600px) {
     .trains-grid {
         grid-template-columns: 1fr;
     }
-    
     .passenger-item-compact {
         flex-direction: column;
         align-items: flex-start;
