@@ -46,17 +46,22 @@ const app = {
     // === END NEW FUNCTION ===
 
     showPage(pageId, ev) {
+        // === CHANGED === (Role-based page guard)
+        if (pageId === 'reports' && app.currentUser.role !== 'admin') {
+            app.showMessage('❌ You do not have permission to view this page.', 'error');
+            return; // Stop the function
+        }
+        // === END CHANGE ===
+
         document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
         document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
         
         const pageEl = document.getElementById(pageId);
         if (pageEl) pageEl.classList.add('active');
 
-        // Make the clicked button active
         if (ev && ev.target) {
             ev.target.classList.add('active');
         } else {
-            // Fallback for page loads not from a click
             const activeBtn = document.querySelector(`.nav-button[onclick*="'${pageId}'"]`);
             if (activeBtn) activeBtn.classList.add('active');
         }
@@ -74,11 +79,9 @@ const app = {
             case 'non-ac-queue':
                 queue.load('NON_AC');
                 break;
-            // === NEW CASE ===
             case 'duplicates':
                 duplicates.load();
                 break;
-            // === END NEW CASE ===
             case 'history':
                 history.load();
                 break;
@@ -87,7 +90,6 @@ const app = {
                 break;
         }
         
-        // After any page load, refresh the duplicates count
         this.updateDuplicatesCount();
     },
 
