@@ -14,14 +14,11 @@ const quickEntry = {
         try {
             const response = await fetch('data/stations.json');
             this.stations = await response.json();
-            console.log('✅ Loaded stations:', this.stations.length);
         } catch (error) {
             console.error('❌ Error loading stations:', error);
         }
     },
 
-    // === CHANGED ===
-    // Updated to include the new 50/50 side panel and placeholder
     renderForm() {
         const quickEntryDiv = document.getElementById('quick-entry');
         quickEntryDiv.innerHTML = `
@@ -171,18 +168,18 @@ const quickEntry = {
         });
     },
 
-    // (loadLatestTickets and renderLatestTickets are unchanged)
+    // === CHANGED === (limit=3)
     async loadLatestTickets() {
         try {
-            const response = await fetch(`${app.API_BASE}/api/tickets?filter=MY&limit=3`, {
-                headers: { 'User-Name': app.currentUser.name }
-            });
+            const response = await fetch(`${app.API_BASE}/api/tickets?filter=MY&limit=3`, { headers: { 'User-Name': app.currentUser.name } });
             this.latestTickets = await response.json();
             this.renderLatestTickets();
         } catch (error) {
             console.error('Error loading latest tickets:', error);
         }
     },
+    
+    // (renderLatestTickets is unchanged)
     renderLatestTickets() {
         const container = document.getElementById('latest-entries-list');
         if (!this.latestTickets || this.latestTickets.length === 0) {
@@ -206,7 +203,7 @@ const quickEntry = {
         container.innerHTML = html;
     },
 
-    // (addPassenger layout is unchanged in JS, only in CSS)
+    // (addPassenger is unchanged)
     addPassenger() {
         const passengersList = document.getElementById('passengers-list');
         const newRow = document.createElement('div');
@@ -229,8 +226,7 @@ const quickEntry = {
         document.getElementById('journey-date').value = tomorrow.toISOString().split('T')[0];
     },
 
-    // === CHANGED ===
-    // Now clears the new notepad
+    // === CHANGED === (clears notepad)
     resetForm(confirmReset = true) {
         if (confirmReset && !confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
             return;
