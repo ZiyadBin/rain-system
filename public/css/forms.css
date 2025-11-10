@@ -254,22 +254,17 @@ button:disabled {
 /* === END NOTEPAD STYLES === */
 
 
-/* === CHANGED PASSENGER ROW STYLES === */
-/* Name smaller, Age larger */
+/* === CHANGED === (Name smaller, Age wider) */
 .passenger-row {
-    display: grid;
     /* Layout for: Name | Age | Gender */
-    grid-template-columns: 2.5fr 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
-    align-items: end;
+    grid-template-columns: 2fr 1.2fr 1fr;
 }
 
 .passenger-row:first-child {
     /* Layout for: Name | Age | Mobile | Gender */
-    grid-template-columns: 2fr 1fr 1.5fr 1fr;
+    grid-template-columns: 1.5fr 1.2fr 1.5fr 1fr;
 }
-/* === END CHANGED STYLES === */
+/* === END CHANGE === */
 
 .passenger-mobile {
     background: #f0f8ff;
