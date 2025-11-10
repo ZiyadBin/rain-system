@@ -256,9 +256,10 @@ const quickEntry = {
         }
     },
 
-    // (saveTicket is unchanged)
     async saveTicket() {
         try {
+            // ... (all the form validation logic is the same)
+            // ...
             const fromStation = document.getElementById('from-station').value.trim().toUpperCase();
             const toStation = document.getElementById('to-station').value.trim().toUpperCase();
             const trainNumber = document.getElementById('train-number').value.trim();
@@ -279,16 +280,10 @@ const quickEntry = {
                 const nameInput = row.querySelector('.passenger-name');
                 const ageInput = row.querySelector('.passenger-age');
                 const genderInput = row.querySelector('.passenger-gender');
-                
                 const name = nameInput.value.trim();
                 
                 if (name) {
-                    const passenger = {
-                        name: name,
-                        age: ageInput.value || '',
-                        gender: genderInput.value || 'Male'
-                    };
-                    
+                    const passenger = { name: name, age: ageInput.value || '', gender: genderInput.value || 'Male' };
                     if (i === 0) {
                         const mobileInput = row.querySelector('.passenger-mobile');
                         const mobile = mobileInput ? mobileInput.value.trim() : '';
@@ -329,23 +324,36 @@ const quickEntry = {
             });
 
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
             const result = await response.json();
 
+            // === CHANGED ===
             if (result.success) {
-                app.showMessage(`✅ Ticket saved successfully! ID: ${result.ticketId}`, 'success');
+                // Check if the backend flagged it as a duplicate
+                if (result.isDuplicate) {
+                    app.showMessage(`⚠️ Ticket saved, but flagged as a potential duplicate.`, 'error'); // Show 'error' style (yellow/red)
+                } else {
+                    app.showMessage(`✅ Ticket saved successfully! ID: ${result.ticketId}`, 'success');
+                }
+                
                 this.resetForm(true); // Reset with confirmation
                 this.loadLatestTickets();
+                
+                // Refresh queues and the new duplicates count badge
+                app.updateDuplicatesCount();
                 if (document.getElementById('ac-queue').classList.contains('active')) queue.load('AC');
                 if (document.getElementById('non-ac-queue').classList.contains('active')) queue.load('NON_AC');
+            
             } else {
                 app.showMessage('❌ Error saving ticket: ' + result.error, 'error');
             }
+            // === END CHANGE ===
+
         } catch (error) {
             console.error('❌ Save ticket error:', error);
             app.showMessage('❌ Network error: ' + error.message, 'error');
         }
     },
-    
     // (parseText is unchanged)
     parseText() {
         const text = document.getElementById('qe-parser-input').value;
